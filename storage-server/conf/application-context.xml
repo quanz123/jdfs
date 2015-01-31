@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+    <property name="customEditors">
+      <map>
+        <entry key="java.net.SocketAddress"  value="org.apache.mina.integration.beans.InetSocketAddressEditor" />
+      </map>
+    </property>
+  </bean>
+
+  <bean id="ioAcceptor" class="org.apache.mina.transport.socket.nio.NioSocketAcceptor" init-method="bind" destroy-method="unbind">
+    <property name="defaultLocalAddress" value=":2010" />
+    <property name="handler" ref="storegeServerHandler" />
+    <property name="filterChainBuilder" ref="filterChainBuilder" />
+    <property name="reuseAddress" value="true" />
+  </bean>
+
+  <bean id="filterChainBuilder" class="org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder">
+    <property name="filters">
+      <map>
+        <entry key="executor" value-ref="executorFilter" />
+        <entry key="mdcInjectionFilter" value-ref="mdcInjectionFilter" />
+        <entry key="codecFilter" value-ref="codecFilter" />
+        <entry key="loggingFilter" value-ref="loggingFilter" />
+      </map>
+    </property>
+  </bean>
+  
+  <bean id="executorFilter" class="org.apache.mina.filter.executor.ExecutorFilter" />
+
+  <bean id="mdcInjectionFilter" class="org.apache.mina.filter.logging.MdcInjectionFilter">
+    <constructor-arg value="remoteAddress" />
+  </bean>
+
+  <bean id="codecFilter" class="org.apache.mina.filter.codec.ProtocolCodecFilter">
+    <constructor-arg ref="codecFactory"/>
+  </bean>
+  
+  <bean id="loggingFilter" class="org.apache.mina.filter.logging.LoggingFilter" />
+  
+  <bean id="codecFactory" class="org.jdfs.storage.codec.FileRequestCodecFactoryFactoryBean">
+    <property name="encoders">
+      <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
+        <entry key="org.jdfs.storage.request.ReadFileRequest">
+          <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder"/>
+        </entry>
+        <entry key="org.jdfs.storage.request.RemoveFileRequest">
+          <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageEncoder"/>
+        </entry>
+        <entry key="org.jdfs.storage.request.UpdateFileRequest">
+          <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder"/>
+        </entry>
+        <entry key="org.jdfs.storage.request.FileResponse">
+          <bean class="org.jdfs.storage.codec.FileResponseMessageEncoder"/>
+        </entry>
+      </map>
+    </property>
+    <property name="decoders">
+      <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
+        <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder"/>
+        <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder"/>
+        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder"/>
+        <bean class="org.jdfs.storage.codec.FileResponseMessageDecoder"/>
+      </array>
+    </property>
+  </bean>
+  
+  <bean id="storegeServerHandler" class="org.jdfs.storage.handler.StorageServerIOHandler" />
+ <!--boss server  -->
+  <!--  bean id="bossSampleHandler" class="org.jdfs.tracker.client.HandlerOne" /  -->
+
+</beans>        
