@@ -6,7 +6,7 @@
   <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
     <property name="customEditors">
       <map>
-        <entry key="java.net.SocketAddress"  value="org.apache.mina.integration.beans.InetSocketAddressEditor" />
+        <entry key="java.net.SocketAddress" value="org.apache.mina.integration.beans.InetSocketAddressEditor" />
       </map>
     </property>
   </bean>
@@ -28,7 +28,7 @@
       </map>
     </property>
   </bean>
-  
+
   <bean id="executorFilter" class="org.apache.mina.filter.executor.ExecutorFilter" />
 
   <bean id="mdcInjectionFilter" class="org.apache.mina.filter.logging.MdcInjectionFilter">
@@ -36,40 +36,64 @@
   </bean>
 
   <bean id="codecFilter" class="org.apache.mina.filter.codec.ProtocolCodecFilter">
-    <constructor-arg ref="codecFactory"/>
+    <constructor-arg ref="codecFactory" />
   </bean>
-  
+
   <bean id="loggingFilter" class="org.apache.mina.filter.logging.LoggingFilter" />
-  
+
   <bean id="codecFactory" class="org.jdfs.storage.codec.FileRequestCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
         <entry key="org.jdfs.storage.request.ReadFileRequest">
-          <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder" />
         </entry>
         <entry key="org.jdfs.storage.request.RemoveFileRequest">
-          <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageEncoder" />
         </entry>
         <entry key="org.jdfs.storage.request.UpdateFileRequest">
-          <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.storage.request.FileResponse">
-          <bean class="org.jdfs.storage.codec.FileResponseMessageEncoder"/>
+        <entry key="org.jdfs.storage.request.FileRequestResponse">
+          <bean class="org.jdfs.storage.codec.FileRequestResponseMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.storage.request.FileDataResponse">
+          <bean class="org.jdfs.storage.codec.FileDataResponseMessageEncoder" />
         </entry>
       </map>
     </property>
     <property name="decoders">
       <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
-        <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.FileResponseMessageDecoder"/>
+        <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.FileRequestResponseMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.FileDataResponseMessageDecoder" />
       </array>
     </property>
   </bean>
-  
-  <bean id="storegeServerHandler" class="org.jdfs.storage.handler.StorageServerIOHandler" />
- <!--boss server  -->
-  <!--  bean id="bossSampleHandler" class="org.jdfs.tracker.client.HandlerOne" /  -->
 
+  <bean id="storegeServerHandler" class="org.jdfs.storage.handler.FileRequestMessageHandlerFactoryBean">
+    <property name="receivedMessageHandlers">
+      <map key-type="java.lang.Class" value-type="org.apache.mina.handler.demux.MessageHandler">
+        <entry key="org.jdfs.storage.request.UpdateFileRequest">
+          <bean class="org.jdfs.storage.handler.UpdateFileRequestMessageHandler">
+            <property name="storeService" ref="storeService" />
+          </bean>
+        </entry>
+        <entry key="org.jdfs.storage.request.RemoveFileRequest">
+          <bean class="org.jdfs.storage.handler.RemoveFileRequestMessageHandler">
+            <property name="storeService" ref="storeService" />
+          </bean>
+        </entry>
+        <entry key="org.jdfs.storage.request.ReadFileRequest">
+          <bean class="org.jdfs.storage.handler.ReadFileRequestMessageHandler">
+            <property name="storeService" ref="storeService" />
+          </bean>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <bean id="storeService" class="org.jdfs.storage.store.StoreServiceImpl">
+  </bean>
 </beans>        

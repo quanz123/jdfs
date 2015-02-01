@@ -16,8 +16,11 @@
         <entry key="org.jdfs.storage.request.UpdateFileRequest">
           <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder"/>
         </entry>
-        <entry key="org.jdfs.storage.request.FileResponse">
-          <bean class="org.jdfs.storage.codec.FileResponseMessageEncoder"/>
+        <entry key="org.jdfs.storage.request.FileRequestResponse">
+          <bean class="org.jdfs.storage.codec.FileRequestResponseMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.storage.request.FileDataResponse">
+          <bean class="org.jdfs.storage.codec.FileDataResponseMessageEncoder" />
         </entry>
       </map>
     </property>
@@ -26,7 +29,8 @@
         <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder"/>
         <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder"/>
         <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.FileResponseMessageDecoder"/>
+        <bean class="org.jdfs.storage.codec.FileRequestResponseMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.FileDataResponseMessageDecoder" />
       </array>
     </property>
   </bean>

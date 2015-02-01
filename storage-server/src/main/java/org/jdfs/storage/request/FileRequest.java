@@ -23,6 +23,10 @@ public class FileRequest {
 	 * 文件请求的处理结果
 	 */
 	public static final int REQUEST_RESPONSE = 10000;
+	/**
+	 * 文件数据请求的处理结果
+	 */
+	public static final int REQUEST_DATA_RESPONSE = 10001;
 	
 	
 	private int code;

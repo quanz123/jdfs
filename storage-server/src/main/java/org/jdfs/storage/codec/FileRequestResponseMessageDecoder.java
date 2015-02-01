@@ -5,9 +5,9 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 import org.jdfs.storage.request.FileRequest;
-import org.jdfs.storage.request.FileResponse;
+import org.jdfs.storage.request.FileRequestResponse;
 
-public class FileResponseMessageDecoder extends FileRequestMessageDecoder {
+public class FileRequestResponseMessageDecoder extends FileRequestMessageDecoder {
 
 	@Override
 	protected boolean support(int code) {
@@ -22,7 +22,7 @@ public class FileResponseMessageDecoder extends FileRequestMessageDecoder {
 		}
 		int code = in.getInt();
 		int status = in.getInt();
-		FileResponse resp = new FileResponse(status);
+		FileRequestResponse resp = new FileRequestResponse(status);
 		out.write(resp);
 		return MessageDecoderResult.OK;
 	}
