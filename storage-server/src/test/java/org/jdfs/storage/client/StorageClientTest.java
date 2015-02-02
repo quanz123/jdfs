@@ -1,7 +1,9 @@
 package org.jdfs.storage.client;
 
 import java.net.InetSocketAddress;
+import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -55,16 +57,27 @@ public class StorageClientTest {
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
 				2010));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
-		UpdateFileRequest request = new UpdateFileRequest(100l, "测试test信息123".getBytes("UTF-8"));
+		StringBuilder b = new StringBuilder();
+		b.append("测试test信息123:").append(new Date()).append('\n');
+		char[] buf = new char[1024];
+		for (int i = 0; i < buf.length; i++) {
+			buf[i] = (char) ((int) '0' + i % 10);
+		}
+		String line = new String(buf);
+		for (int i = 0; i < 3; i++) {
+			b.append("line ").append(i).append('\n').append(line).append('\n');
+		}
+		b.append("----------------------------------------finished-------------------------------------------------");
+		UpdateFileRequest request = new UpdateFileRequest(100l, b.toString()
+				.getBytes("UTF-8"));
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
 		cf.getSession().close(true);
 		cf.getSession().getCloseFuture().awaitUninterruptibly();// 等待连接断开
-		connector.dispose();					
+		connector.dispose();
 	}
 
-	@Test
 	public void testRead() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -82,11 +95,9 @@ public class StorageClientTest {
 		Thread.sleep(2000);
 		cf.getSession().close(true);
 		cf.getSession().getCloseFuture().awaitUninterruptibly();// 等待连接断开
-		connector.dispose();					
+		connector.dispose();
 	}
 
-
-	@Test
 	public void testRemove() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -104,41 +115,46 @@ public class StorageClientTest {
 		Thread.sleep(2000);
 		cf.getSession().close(true);
 		cf.getSession().getCloseFuture().awaitUninterruptibly();// 等待连接断开
-		connector.dispose();					
+		connector.dispose();
 	}
-	
-	protected class UpdateFileIoHandler extends  IoHandlerAdapter {		
+
+	protected class UpdateFileIoHandler extends IoHandlerAdapter {
 
 		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
-			if(message instanceof FileRequestResponse) {
-				System.out.println("recv resp: " + ((FileRequestResponse)message).getStatus());
+			if (message instanceof FileRequestResponse) {
+				System.out.println("recv resp: "
+						+ ((FileRequestResponse) message).getStatus());
 			} else {
 				System.out.println("recv: " + message);
 			}
 		}
-		
+
 		@Override
-		public void messageSent(IoSession session, Object message) throws Exception {
+		public void messageSent(IoSession session, Object message)
+				throws Exception {
 			System.out.println("sent: " + message);
 		}
 	}
-	
 
-	protected class ReadFileIoHandler extends  IoHandlerAdapter {		
+	protected class ReadFileIoHandler extends IoHandlerAdapter {
 		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
-			if(message instanceof FileDataResponse) {
-				System.out.println("recv data: " + new String(((FileDataResponse)message).getData(), "UTF-8"));
+			if (message instanceof FileDataResponse) {
+				String msg = new String(((FileDataResponse) message).getData(),
+						"UTF-8");
+				System.out.println("recv data: "
+						+ StringUtils.abbreviate(msg, 100));
 			} else {
 				System.out.println("recv: " + message);
 			}
 		}
-		
+
 		@Override
-		public void messageSent(IoSession session, Object message) throws Exception {
+		public void messageSent(IoSession session, Object message)
+				throws Exception {
 			System.out.println("sent: " + message);
 		}
 	}

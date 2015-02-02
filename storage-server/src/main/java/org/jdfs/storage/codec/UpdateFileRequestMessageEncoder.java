@@ -17,7 +17,7 @@ public class UpdateFileRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			UpdateFileRequest message) {
-		return IoBuffer.allocate(16 + message.getLength(), false);
+		return IoBuffer.allocate(32 + message.getLength(), false);
 	}
 	
 	@Override
@@ -25,6 +25,8 @@ public class UpdateFileRequestMessageEncoder extends
 			IoBuffer buffer, IoSession session, ProtocolEncoderOutput out)
 			throws Exception {
 		int length = message.getLength();
+		buffer.putLong(length);	//size
+		buffer.putLong(0);	//position
 		buffer.putInt(length);
 		if(length > 0) {
 			buffer.put(message.getData());

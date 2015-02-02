@@ -3,13 +3,13 @@ package org.jdfs.storage.handler;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.jdfs.storage.request.FileRequestResponse;
-import org.jdfs.storage.request.UpdateFileRequest;
+import org.jdfs.storage.request.UpdateFileDataRequest;
 import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-public class UpdateFileRequestMessageHandler implements
-		MessageHandler<UpdateFileRequest>, InitializingBean {
+public class UpdateFileDataRequestMessageHandler implements
+		MessageHandler<UpdateFileDataRequest>, InitializingBean {
 	private StoreService storeService;
 
 	public StoreService getStoreService() {
@@ -26,12 +26,21 @@ public class UpdateFileRequestMessageHandler implements
 	}
 
 	@Override
-	public void handleMessage(IoSession session, UpdateFileRequest message)
+	public void handleMessage(IoSession session, UpdateFileDataRequest message)
 			throws Exception {
 		long id = message.getId();
+		long size = message.getSize();
+		long position = message.getPosition();
 		byte[] data = message.getData();
-		storeService.storeFile(id, data);
-		FileRequestResponse resp = new FileRequestResponse(0);
-		session.write(resp);
+		if (position == 0) {
+			storeService.setFileSize(id, size);
+		}
+		if (data != null && data.length > 0) {
+			storeService.storeFile(id, position, data);
+		}
+		if (message.isSendResponse()) {
+			FileRequestResponse resp = new FileRequestResponse(0);
+			session.write(resp);
+		}
 	}
 }

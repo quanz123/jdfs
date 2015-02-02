@@ -12,7 +12,7 @@ public class UpdateFileRequest extends FileRequest {
 	public int getLength() {
 		return data == null ? 0 : data.length;
 	}
-	
+		
 	public byte[] getData() {
 		return data;
 	}

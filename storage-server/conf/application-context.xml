@@ -65,7 +65,7 @@
       <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
         <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder" />
-        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.FileRangeRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.FileRequestResponseMessageDecoder" />
         <bean class="org.jdfs.storage.codec.FileDataResponseMessageDecoder" />
       </array>
@@ -75,8 +75,8 @@
   <bean id="storegeServerHandler" class="org.jdfs.storage.handler.FileRequestMessageHandlerFactoryBean">
     <property name="receivedMessageHandlers">
       <map key-type="java.lang.Class" value-type="org.apache.mina.handler.demux.MessageHandler">
-        <entry key="org.jdfs.storage.request.UpdateFileRequest">
-          <bean class="org.jdfs.storage.handler.UpdateFileRequestMessageHandler">
+        <entry key="org.jdfs.storage.request.UpdateFileDataRequest">
+          <bean class="org.jdfs.storage.handler.UpdateFileDataRequestMessageHandler">
             <property name="storeService" ref="storeService" />
           </bean>
         </entry>
