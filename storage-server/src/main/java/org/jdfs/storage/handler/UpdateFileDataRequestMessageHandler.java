@@ -32,9 +32,9 @@ public class UpdateFileDataRequestMessageHandler implements
 		long size = message.getSize();
 		long position = message.getPosition();
 		byte[] data = message.getData();
-		if (position == 0) {
-			storeService.setFileSize(id, size);
-		}
+		// if (position == 0) {
+		storeService.setFileSize(id, size);
+		// }
 		if (data != null && data.length > 0) {
 			storeService.storeFile(id, position, data);
 		}

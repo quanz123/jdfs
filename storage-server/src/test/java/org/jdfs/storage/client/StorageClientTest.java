@@ -64,7 +64,7 @@ public class StorageClientTest {
 			buf[i] = (char) ((int) '0' + i % 10);
 		}
 		String line = new String(buf);
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 20; i++) {
 			b.append("line ").append(i).append('\n').append(line).append('\n');
 		}
 		b.append("----------------------------------------finished-------------------------------------------------");
