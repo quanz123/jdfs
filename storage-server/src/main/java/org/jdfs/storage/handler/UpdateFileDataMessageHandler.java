@@ -8,7 +8,7 @@ import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-public class UpdateFileDataRequestMessageHandler implements
+public class UpdateFileDataMessageHandler implements
 		MessageHandler<UpdateFileDataRequest>, InitializingBean {
 	private StoreService storeService;
 

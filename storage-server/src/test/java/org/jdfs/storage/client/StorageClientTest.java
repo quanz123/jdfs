@@ -64,7 +64,7 @@ public class StorageClientTest {
 			buf[i] = (char) ((int) '0' + i % 10);
 		}
 		String line = new String(buf);
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 10; i++) {
 			b.append("line ").append(i).append('\n').append(line).append('\n');
 		}
 		b.append("----------------------------------------finished-------------------------------------------------");
@@ -78,13 +78,14 @@ public class StorageClientTest {
 		connector.dispose();
 	}
 
+	@Test
 	public void testRead() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
 		connector.getFilterChain().addLast("logger", new LoggingFilter());
 		connector.getFilterChain().addLast("codec",
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
-		ReadFileIoHandler handler = new ReadFileIoHandler();
+		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
 		connector.setHandler(handler);// 设置事件处理器
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
 				2010));// 建立连接
@@ -93,11 +94,9 @@ public class StorageClientTest {
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
-		cf.getSession().close(true);
-		cf.getSession().getCloseFuture().awaitUninterruptibly();// 等待连接断开
-		connector.dispose();
 	}
 
+	@Test
 	public void testRemove() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -139,6 +138,13 @@ public class StorageClientTest {
 	}
 
 	protected class ReadFileIoHandler extends IoHandlerAdapter {
+		private NioSocketConnector connector;
+
+		public ReadFileIoHandler(NioSocketConnector connector) {
+			super();
+			this.connector = connector;
+		}
+
 		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
@@ -150,12 +156,29 @@ public class StorageClientTest {
 			} else {
 				System.out.println("recv: " + message);
 			}
+			closeSession(session);
 		}
 
 		@Override
 		public void messageSent(IoSession session, Object message)
 				throws Exception {
 			System.out.println("sent: " + message);
+		}
+
+		@Override
+		public void exceptionCaught(IoSession session, Throwable cause)
+				throws Exception {
+			cause.printStackTrace();
+			closeSession(session);
+		}
+
+		protected void closeSession(IoSession session) {
+			session.close(true);
+			session.getCloseFuture().awaitUninterruptibly();// 等待连接断开
+			if (connector != null) {
+				connector.dispose();
+				connector = null;
+			}
 		}
 	}
 }

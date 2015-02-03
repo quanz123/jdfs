@@ -41,7 +41,7 @@
 
   <bean id="loggingFilter" class="org.apache.mina.filter.logging.LoggingFilter" />
 
-  <bean id="codecFactory" class="org.jdfs.storage.codec.FileRequestCodecFactoryFactoryBean">
+  <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
         <entry key="org.jdfs.storage.request.ReadFileRequest">
@@ -72,21 +72,21 @@
     </property>
   </bean>
 
-  <bean id="storegeServerHandler" class="org.jdfs.storage.handler.FileRequestMessageHandlerFactoryBean">
+  <bean id="storegeServerHandler" class="org.jdfs.commons.handler.DemuxingIoHandlerFactoryBean">
     <property name="receivedMessageHandlers">
       <map key-type="java.lang.Class" value-type="org.apache.mina.handler.demux.MessageHandler">
         <entry key="org.jdfs.storage.request.UpdateFileDataRequest">
-          <bean class="org.jdfs.storage.handler.UpdateFileDataRequestMessageHandler">
+          <bean class="org.jdfs.storage.handler.UpdateFileDataMessageHandler">
             <property name="storeService" ref="storeService" />
           </bean>
         </entry>
         <entry key="org.jdfs.storage.request.RemoveFileRequest">
-          <bean class="org.jdfs.storage.handler.RemoveFileRequestMessageHandler">
+          <bean class="org.jdfs.storage.handler.RemoveFileMessageHandler">
             <property name="storeService" ref="storeService" />
           </bean>
         </entry>
         <entry key="org.jdfs.storage.request.ReadFileRequest">
-          <bean class="org.jdfs.storage.handler.ReadFileRequestMessageHandler">
+          <bean class="org.jdfs.storage.handler.ReadFileMessageHandler">
             <property name="storeService" ref="storeService" />
           </bean>
         </entry>

@@ -13,6 +13,10 @@
   <name>storage-server</name>
   <dependencies>
     <dependency>
+      <groupId>org.jdfs</groupId>
+      <artifactId>jdfs-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>

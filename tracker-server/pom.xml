@@ -12,6 +12,18 @@
   <artifactId>tracker-server</artifactId>
   <name>tracker-server</name>
   <dependencies>
+      <dependency>
+        <groupId>org.jdfs</groupId>
+        <artifactId>jdfs-commons</artifactId>
+      </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-joda</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mapdb</groupId>
+      <artifactId>mapdb</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.mina</groupId>
       <artifactId>mina-core</artifactId>

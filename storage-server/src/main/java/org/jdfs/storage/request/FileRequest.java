@@ -7,28 +7,7 @@ package org.jdfs.storage.request;
  * @version 2015年1月29日 下午6:06:43
  */
 public class FileRequest {
-	/**
-	 * 写入文件数据的请求
-	 */
-	public static final int REQUEST_UPDATE = 1;
-	/**
-	 * 删除文件数据的请求
-	 */
-	public static final int REQUEST_DELETE = 2;
-	/**
-	 * 读取文件数据的请求
-	 */
-	public static final int REQUEST_READ = 3;
-	/**
-	 * 文件请求的处理结果
-	 */
-	public static final int REQUEST_RESPONSE = 10000;
-	/**
-	 * 文件数据请求的处理结果
-	 */
-	public static final int REQUEST_DATA_RESPONSE = 10001;
-	
-	
+		
 	private int code;
 	private long id;
 	

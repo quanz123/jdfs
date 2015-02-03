@@ -4,7 +4,7 @@
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
   
-  <bean id="codecFactory" class="org.jdfs.storage.codec.FileRequestCodecFactoryFactoryBean">
+  <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
         <entry key="org.jdfs.storage.request.ReadFileRequest">

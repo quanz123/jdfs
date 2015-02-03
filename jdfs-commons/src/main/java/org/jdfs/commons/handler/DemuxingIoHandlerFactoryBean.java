@@ -1,4 +1,4 @@
-package org.jdfs.storage.handler;
+package org.jdfs.commons.handler;
 
 import java.util.Map;
 
@@ -6,7 +6,13 @@ import org.apache.mina.handler.demux.DemuxingIoHandler;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
-public class FileRequestMessageHandlerFactoryBean extends
+/**
+ * 以spring方式创建DemuxingIoHandler的工厂类
+ * 
+ * @author James Quan
+ * @version 2015年2月3日 上午11:41:41
+ */
+public class DemuxingIoHandlerFactoryBean extends
 		AbstractFactoryBean<DemuxingIoHandler> {
 	private Map<Class<?>, MessageHandler<?>> receivedMessageHandlers;
 	private Map<Class<?>, MessageHandler<?>> sentMessageHandlers;
@@ -25,6 +31,7 @@ public class FileRequestMessageHandlerFactoryBean extends
 		return DemuxingIoHandler.class;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected DemuxingIoHandler createInstance() throws Exception {
 		DemuxingIoHandler handler = new DemuxingIoHandler();

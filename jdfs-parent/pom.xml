@@ -14,6 +14,7 @@
   <packaging>pom</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jackson.version>2.5.0</jackson.version>
     <log4j.version>2.1</log4j.version>
     <mina.version>2.0.9</mina.version>
     <slf4j.version>1.7.7</slf4j.version>
@@ -22,6 +23,16 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.jdfs</groupId>
+        <artifactId>jdfs-commons</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-joda</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.lmax</groupId>
         <artifactId>disruptor</artifactId>
@@ -63,6 +74,11 @@
         <version>${mina.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.mapdb</groupId>
+        <artifactId>mapdb</artifactId>
+        <version>1.0.6</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
         <version>${slf4j.version}</version>
@@ -71,6 +87,11 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-beans</artifactId>
+        <version>${spring.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>

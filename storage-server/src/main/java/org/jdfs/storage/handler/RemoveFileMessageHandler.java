@@ -1,21 +1,15 @@
 package org.jdfs.storage.handler;
 
-import java.io.File;
-import java.nio.channels.FileChannel;
-
-import org.apache.commons.io.FileUtils;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
-import org.jdfs.storage.request.FileDataResponse;
 import org.jdfs.storage.request.FileRequestResponse;
-import org.jdfs.storage.request.FileResponse;
-import org.jdfs.storage.request.ReadFileRequest;
+import org.jdfs.storage.request.RemoveFileRequest;
 import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-public class ReadFileRequestMessageHandler implements
-		MessageHandler<ReadFileRequest>, InitializingBean {
+public class RemoveFileMessageHandler implements
+		MessageHandler<RemoveFileRequest>, InitializingBean {
 	private StoreService storeService;
 
 	public StoreService getStoreService() {
@@ -32,17 +26,11 @@ public class ReadFileRequestMessageHandler implements
 	}
 
 	@Override
-	public void handleMessage(IoSession session, ReadFileRequest message)
+	public void handleMessage(IoSession session, RemoveFileRequest message)
 			throws Exception {
 		long id = message.getId();
-		File file  = storeService.readFile(id);
-		if(file == null) {
-			FileResponse resp = new FileDataResponse(1, null);
-			session.write(resp);			
-		} else {
-			byte[] data = FileUtils.readFileToByteArray(file);
-			FileResponse resp = new FileDataResponse(0, data);
-			session.write(resp);			
-		}		
+		storeService.removeFile(id);
+		FileRequestResponse resp = new FileRequestResponse(0);
+		session.write(resp);
 	}
 }
