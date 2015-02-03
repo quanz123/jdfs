@@ -8,8 +8,25 @@ package org.jdfs.commons.request;
 public class JdfsRequest {
 			
 		private int code;
+		
 		/**
-		 * 返回请求执行的功能
+		 * 空白构造函数
+		 */
+		public JdfsRequest() {
+			super();
+		}
+
+		/**
+		 * 指定请求代码的构造函数
+		 * @param code 请求的功能代码
+		 */
+		public JdfsRequest(int code) {
+			super();
+			this.code = code;
+		}
+
+		/**
+		 * 返回请求的功能代码
 		 * @return
 		 */
 		public int getCode() {
@@ -17,7 +34,7 @@ public class JdfsRequest {
 		}
 
 		/**
-		 * 设置请求执行的功能
+		 * 设置请求的功能代码
 		 * @param code
 		 */
 		public void setCode(int code) {
