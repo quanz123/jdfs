@@ -45,6 +45,7 @@ public class UpdateFileRequestMessageDecoder extends JdfsFileRequestMessageDecod
 		}
 		int l = in.getInt();
 		byte[] data = new byte[l];
+		in.get(data);
 		String name = new String(data, "UTF-8");
 		request.setName(name);
 		return MessageDecoderResult.OK;

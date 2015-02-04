@@ -9,10 +9,27 @@ import org.jdfs.commons.request.JdfsRequestConstants;
  * @version 2015年2月4日 下午6:15:19
  */
 public class FileInfoResponse extends JdfsRequest {
+	private int status = JdfsRequestConstants.STATUS_OK;;
 	private long id;
 	private long size;
 	private long lastModified;
 	private String name;
+	
+	/**
+	 * 返回执行的结果代码
+	 * @return
+	 */
+	public int getStatus() {
+		return status;
+	}
+
+	/**
+	 * 设置执行的结果代码
+	 * @param status
+	 */
+	public void setStatus(int status) {
+		this.status = status;
+	}
 
 	/**
 	 * 返回文件的id
@@ -89,6 +106,15 @@ public class FileInfoResponse extends JdfsRequest {
 	 */
 	public FileInfoResponse() {
 		super(JdfsRequestConstants.REQUEST_INFO_RESULT);
+	}
+
+	/**
+	 * 指定结果代码的构造函数
+	 * @param status
+	 */
+	public FileInfoResponse(int status) {
+		this();
+		setStatus(status);
 	}
 
 	/**

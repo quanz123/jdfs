@@ -34,12 +34,14 @@ public class FileInfoResponseMessageDecoder extends
 			throws Exception {
 		FileInfoResponse request = state.getRequest();
 		if (state.getState() == 1) {
-			if (in.remaining() < 24) {
+			if (in.remaining() < 28) {
 				return MessageDecoderResult.NEED_DATA;
 			}
+			int status = in.getInt();
 			long id = in.getLong();
 			long size = in.getLong();
 			long lastModified = in.getLong();
+			request.setStatus(status);
 			request.setId(id);
 			request.setSize(size);
 			request.setLastModified(lastModified);
@@ -50,6 +52,7 @@ public class FileInfoResponseMessageDecoder extends
 		}
 		int l = in.getInt();
 		byte[] data = new byte[l];
+		in.get(data);
 		String name = new String(data, "UTF-8");
 		request.setName(name);
 		return MessageDecoderResult.OK;

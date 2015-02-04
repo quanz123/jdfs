@@ -7,7 +7,7 @@ package org.jdfs.commons.request;
  * @version 2015年2月4日 上午10:15:47
  */
 public class JdfsDataResponse extends JdfsRequest {
-	private int status;
+	private int status = JdfsRequestConstants.STATUS_OK;;
 	private String message;
 	private byte[] data;
 

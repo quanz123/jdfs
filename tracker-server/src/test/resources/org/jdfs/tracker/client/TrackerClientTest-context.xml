@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+  
+  <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
+    <property name="encoders">
+      <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
+        <entry key="org.jdfs.tracker.request.ReadFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.ReadFileRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.tracker.request.RemoveFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.RemoveFileRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.tracker.request.UpdateFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.commons.request.JdfsStatusResponse">
+          <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.tracker.request.FileInfoResponse">
+          <bean class="org.jdfs.tracker.codec.FileInfoResponseMessageEncoder" />
+        </entry>
+      </map>
+    </property>
+    <property name="decoders">
+      <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
+        <bean class="org.jdfs.tracker.codec.ReadFileRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.RemoveFileRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.FileInfoResponseMessageDecoder" />
+      </array>
+    </property>
+  </bean>
+  
+</beans>        

@@ -21,9 +21,9 @@ public class FileInfoResponseMessageEncoder extends
 			FileInfoResponse message) {
 		String name = message.getName();
 		if(StringUtils.isEmpty(name)) {
-			return IoBuffer.allocate(32, false);
+			return IoBuffer.allocate(36, false);
 		} else {
-			IoBuffer buf = IoBuffer.allocate(32 + name.length() * 3, false);
+			IoBuffer buf = IoBuffer.allocate(36 + name.length() * 3, false);
 			buf.setAutoExpand(true);
 			return buf;
 		}
@@ -33,6 +33,7 @@ public class FileInfoResponseMessageEncoder extends
 	protected void encodeMessageData(FileInfoResponse message,
 			IoBuffer buffer, IoSession session, ProtocolEncoderOutput out)
 			throws Exception {
+		buffer.putInt(message.getStatus());
 		buffer.putLong(message.getId());
 		buffer.putLong(message.getSize());	
 		buffer.putLong(message.getLastModified());	
