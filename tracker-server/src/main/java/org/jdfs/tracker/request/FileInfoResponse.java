@@ -1,56 +1,35 @@
 package org.jdfs.tracker.request;
 
-import org.jdfs.commons.request.JdfsFileRequest;
+import org.jdfs.commons.request.JdfsRequest;
 import org.jdfs.commons.request.JdfsRequestConstants;
 
 /**
- * 保存文件信息的请求
- * 
+ * 用于返回文件信息结果的请求
  * @author James Quan
- * @version 2015年2月3日 上午11:02:13
+ * @version 2015年2月4日 下午6:15:19
  */
-public class UpdateFileInfoRequest extends JdfsFileRequest {
+public class FileInfoResponse extends JdfsRequest {
+	private long id;
 	private long size;
 	private long lastModified;
 	private String name;
 
 	/**
-	 * 空白构造函数
+	 * 返回文件的id
+	 * @return
 	 */
-	public UpdateFileInfoRequest() {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE);
+	public long getId() {
+		return id;
 	}
-
+	
 	/**
-	 * 指定待保存文件id的构造函数
-	 * 
+	 * 设置文件的id
 	 * @param id
-	 *            文件id
 	 */
-	public UpdateFileInfoRequest(long id) {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE, id);
+	public void setId(long id) {
+		this.id = id;
 	}
-
-	/**
-	 * 直接指定文件信息的构造函数
-	 * 
-	 * @param id
-	 *            文件id
-	 * @param name
-	 *            文件名字
-	 * @param size
-	 *            文件大小
-	 * @param lastModified
-	 *            文件的最后修改时间
-	 */
-	public UpdateFileInfoRequest(long id, String name, long size,
-			long lastModified) {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE, id);
-		this.name = name;
-		this.size = size;
-		this.lastModified = lastModified;
-	}
-
+	
 	/**
 	 * 返回文件的大小
 	 * 
@@ -104,4 +83,33 @@ public class UpdateFileInfoRequest extends JdfsFileRequest {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * 空白构造函数
+	 */
+	public FileInfoResponse() {
+		super(JdfsRequestConstants.REQUEST_INFO_RESULT);
+	}
+
+	/**
+	 * 直接指定文件信息的构造函数
+	 * 
+	 * @param id
+	 *            文件id
+	 * @param name
+	 *            文件名字
+	 * @param size
+	 *            文件大小
+	 * @param lastModified
+	 *            文件的最后修改时间
+	 */
+	public FileInfoResponse(long id, String name, long size,
+			long lastModified) {
+		super(JdfsRequestConstants.REQUEST_INFO_RESULT);
+		this.id = id;
+		this.name = name;
+		this.size = size;
+		this.lastModified = lastModified;
+	}
+
 }

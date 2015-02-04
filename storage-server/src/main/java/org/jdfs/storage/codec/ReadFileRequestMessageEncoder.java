@@ -3,26 +3,30 @@ package org.jdfs.storage.codec;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
+import org.jdfs.commons.codec.JdfsFileRequestMessageEncoder;
 import org.jdfs.storage.request.ReadFileRequest;
+import org.jdfs.storage.request.UpdateFileRequest;
 
 /**
- * 
+ * 用于对{@link ReadFileRequest}进行编码的编码器
  * @author James Quan
- * @version 2015年1月31日 上午9:53:05
+ * @version 2015年2月4日 下午3:07:38
  */
 public class ReadFileRequestMessageEncoder extends
-		FileRequestMessageEncoder<ReadFileRequest> {
+		JdfsFileRequestMessageEncoder<ReadFileRequest> {
 
 	@Override
-	protected IoBuffer allocateBuffer(IoSession session, ReadFileRequest message) {
-		return IoBuffer.allocate(36, false);
+	protected IoBuffer allocateBuffer(IoSession session,
+			ReadFileRequest message) {
+		return IoBuffer.allocate(24, false);
+	}
+	
+	@Override
+	protected void encodeFileMessageData(ReadFileRequest message,
+			IoBuffer buffer, IoSession session, ProtocolEncoderOutput out)
+			throws Exception {
+		buffer.putLong(message.getOffset());	
+		buffer.putInt(message.getLength());	
 	}
 
-	@Override
-	protected void encodeMessageData(ReadFileRequest message, IoBuffer buffer,
-			IoSession session, ProtocolEncoderOutput out) throws Exception {
-		buffer.putLong(message.getStart());
-		buffer.putLong(message.getEnd());
-		buffer.putLong(message.getLength());
-	}
 }

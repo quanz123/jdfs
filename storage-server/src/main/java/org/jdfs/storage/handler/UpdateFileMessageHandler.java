@@ -2,14 +2,21 @@ package org.jdfs.storage.handler;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
-import org.jdfs.storage.request.FileRequestResponse;
-import org.jdfs.storage.request.UpdateFileDataRequest;
+import org.jdfs.commons.request.JdfsRequestConstants;
+import org.jdfs.commons.request.JdfsStatusResponse;
+import org.jdfs.storage.request.UpdateFileRequest;
 import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-public class UpdateFileDataMessageHandler implements
-		MessageHandler<UpdateFileDataRequest>, InitializingBean {
+/**
+ * 保存文件请求的处理器
+ * 
+ * @author James Quan
+ * @version 2015年2月4日 下午3:19:46
+ */
+public class UpdateFileMessageHandler implements
+		MessageHandler<UpdateFileRequest>, InitializingBean {
 	private StoreService storeService;
 
 	public StoreService getStoreService() {
@@ -26,21 +33,20 @@ public class UpdateFileDataMessageHandler implements
 	}
 
 	@Override
-	public void handleMessage(IoSession session, UpdateFileDataRequest message)
+	public void handleMessage(IoSession session, UpdateFileRequest message)
 			throws Exception {
 		long id = message.getId();
 		long size = message.getSize();
-		long position = message.getPosition();
+		long position = Math.max(0, message.getPosition());
 		byte[] data = message.getData();
-		// if (position == 0) {
+		int l = data == null ? 0 : data.length;
+		size = Math.max(size, position + l);
 		storeService.setFileSize(id, size);
-		// }
-		if (data != null && data.length > 0) {
+		if (l > 0) {
 			storeService.storeFile(id, position, data);
 		}
-		if (message.isSendResponse()) {
-			FileRequestResponse resp = new FileRequestResponse(0);
-			session.write(resp);
-		}
+		JdfsStatusResponse resp = new JdfsStatusResponse(
+				JdfsRequestConstants.STATUS_OK);
+		session.write(resp);
 	}
 }

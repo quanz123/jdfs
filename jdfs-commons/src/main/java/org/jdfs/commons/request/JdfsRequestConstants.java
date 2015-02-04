@@ -6,18 +6,18 @@ package org.jdfs.commons.request;
  * @author James Quan
  * @version 2015年2月3日 下午5:24:25
  */
-public interface RequestConstants {
+public interface JdfsRequestConstants {
 
 	/**
 	 * 保存文件信息的请求代码
 	 */
 	public int REQUEST_INFO_UPDATE = 101;
-	
+
 	/**
 	 * 删除文件信息的请求代码
 	 */
 	public int REQUEST_INFO_DELETE = 102;
-	
+
 	/**
 	 * 读取文件信息的请求代码
 	 */
@@ -27,12 +27,12 @@ public interface RequestConstants {
 	 * 保存文件数据的请求代码
 	 */
 	public int REQUEST_DATA_UPDATE = 201;
-	
+
 	/**
 	 * 删除文件数据的请求代码
 	 */
 	public int REQUEST_DATA_DELETE = 202;
-	
+
 	/**
 	 * 读取文件数据的请求代码
 	 */
@@ -48,4 +48,21 @@ public interface RequestConstants {
 	 */
 	public int REQUEST_DATA_RESULT = 502;
 
+	/**
+	 * 返回读取到的文件信息的请求代码
+	 */
+	public int REQUEST_INFO_RESULT = 503;
+
+	
+	// ------------------------------------处理结果代码
+
+	/**
+	 * 处理成功
+	 */
+	public int STATUS_OK = 0;
+	
+	/**
+	 * 待处理的文件不存在
+	 */
+	public int STATUS_FILE_NOT_FOUND = 1;
 }

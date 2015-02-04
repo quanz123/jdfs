@@ -53,11 +53,11 @@
         <entry key="org.jdfs.storage.request.UpdateFileRequest">
           <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.storage.request.FileRequestResponse">
-          <bean class="org.jdfs.storage.codec.FileRequestResponseMessageEncoder" />
+        <entry key="org.jdfs.commons.request.JdfsStatusResponse">
+          <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.storage.request.FileDataResponse">
-          <bean class="org.jdfs.storage.codec.FileDataResponseMessageEncoder" />
+        <entry key="org.jdfs.commons.request.JdfsDataResponse">
+          <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageEncoder" />
         </entry>
       </map>
     </property>
@@ -65,9 +65,9 @@
       <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
         <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder" />
-        <bean class="org.jdfs.storage.codec.FileRangeRequestMessageDecoder" />
-        <bean class="org.jdfs.storage.codec.FileRequestResponseMessageDecoder" />
-        <bean class="org.jdfs.storage.codec.FileDataResponseMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageDecoder" />
       </array>
     </property>
   </bean>
@@ -75,8 +75,8 @@
   <bean id="storegeServerHandler" class="org.jdfs.commons.handler.DemuxingIoHandlerFactoryBean">
     <property name="receivedMessageHandlers">
       <map key-type="java.lang.Class" value-type="org.apache.mina.handler.demux.MessageHandler">
-        <entry key="org.jdfs.storage.request.UpdateFileDataRequest">
-          <bean class="org.jdfs.storage.handler.UpdateFileDataMessageHandler">
+        <entry key="org.jdfs.storage.request.UpdateFileRequest">
+          <bean class="org.jdfs.storage.handler.UpdateFileMessageHandler">
             <property name="storeService" ref="storeService" />
           </bean>
         </entry>

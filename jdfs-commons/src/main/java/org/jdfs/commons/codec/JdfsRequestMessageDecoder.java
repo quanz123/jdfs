@@ -15,7 +15,17 @@ import org.jdfs.commons.request.JdfsRequest;
  */
 public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 		MessageDecoderAdapter {
-	private String stateObjectSessionKey = null;
+	protected String stateObjectSessionKey = null;
+	protected int maxDataSize = 1024 * 1024;
+	
+	public int getMaxDataSize() {
+		return maxDataSize;
+	}
+	
+	public void setMaxDataSize(int maxDataSize) {
+		this.maxDataSize = maxDataSize;
+	}
+	
 
 	@Override
 	public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
@@ -62,7 +72,7 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	 * @param code
 	 * @return
 	 */
-	protected boolean support(int code, IoSession session, IoBuffer in) {
+	protected boolean support(int code, IoSession session, IoBuffer in)  {
 		return code == getRequestCode();
 	}
 
@@ -88,15 +98,16 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	}
 
 	/**
-	 * 供子类重写的请求解码回调函数，用于实现对请求的其他参数的解码
+	 * 供子类重写的请求解码回调函数，用于实现对请求代码以外的其他参数的解码
 	 * 
 	 * @param state 缓存解码过程的状态对象
 	 * @param session
 	 * @param in
 	 * @return
+	 * @throws Exception
 	 */
 	protected MessageDecoderResult decodeRequest(DecoderState<T> state, IoSession session,
-			IoBuffer in) {
+			IoBuffer in)  throws Exception{
 		return MessageDecoderResult.OK;
 	}
 

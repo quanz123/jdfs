@@ -1,16 +1,22 @@
 package org.jdfs.storage.handler;
 
 import java.io.File;
-import org.apache.commons.io.FileUtils;
+import java.io.RandomAccessFile;
+
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
-import org.jdfs.storage.request.FileDataResponse;
-import org.jdfs.storage.request.FileResponse;
+import org.jdfs.commons.request.JdfsDataResponse;
+import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.storage.request.ReadFileRequest;
 import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
+/**
+ * 读取文件请求的处理器
+ * @author James Quan
+ * @version 2015年2月4日 下午3:21:40
+ */
 public class ReadFileMessageHandler implements
 		MessageHandler<ReadFileRequest>, InitializingBean {
 	private StoreService storeService;
@@ -34,11 +40,30 @@ public class ReadFileMessageHandler implements
 		long id = message.getId();
 		File file  = storeService.readFile(id);
 		if(file == null) {
-			FileResponse resp = new FileDataResponse(1, null);
+			JdfsDataResponse resp = new JdfsDataResponse(
+					JdfsRequestConstants.STATUS_FILE_NOT_FOUND);
 			session.write(resp);			
 		} else {
-			byte[] data = FileUtils.readFileToByteArray(file);
-			FileResponse resp = new FileDataResponse(0, data);
+			JdfsDataResponse resp = new JdfsDataResponse(
+					JdfsRequestConstants.STATUS_OK);
+			long offset = Math.max(0,  message.getOffset());
+			int length = message.getLength();
+			if(length < 0) {
+				length = (int) file.length();
+			}
+			if(length > 0) {
+				RandomAccessFile raf = new RandomAccessFile(file, "r");
+				try{				
+					if(offset > 0) {
+						raf.seek(offset);
+					}
+					byte[] buf = new byte[length];
+					int l = raf.read(buf);
+					resp.setData(buf);
+				} finally {
+					raf.close();
+				}				
+			}
 			session.write(resp);			
 		}		
 	}

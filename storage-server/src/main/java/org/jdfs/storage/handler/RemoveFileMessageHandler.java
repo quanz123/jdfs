@@ -2,12 +2,19 @@ package org.jdfs.storage.handler;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
-import org.jdfs.storage.request.FileRequestResponse;
+import org.jdfs.commons.request.JdfsRequestConstants;
+import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.storage.request.RemoveFileRequest;
 import org.jdfs.storage.store.StoreService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
+/**
+ * 删除文件请求的处理器
+ * 
+ * @author James Quan
+ * @version 2015年2月4日 下午3:20:26
+ */
 public class RemoveFileMessageHandler implements
 		MessageHandler<RemoveFileRequest>, InitializingBean {
 	private StoreService storeService;
@@ -30,7 +37,8 @@ public class RemoveFileMessageHandler implements
 			throws Exception {
 		long id = message.getId();
 		storeService.removeFile(id);
-		FileRequestResponse resp = new FileRequestResponse(0);
+		JdfsStatusResponse resp = new JdfsStatusResponse(
+				JdfsRequestConstants.STATUS_OK);
 		session.write(resp);
 	}
 }

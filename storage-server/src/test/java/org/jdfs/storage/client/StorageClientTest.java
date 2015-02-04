@@ -12,9 +12,8 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
-import org.jdfs.storage.request.FileDataResponse;
-import org.jdfs.storage.request.FileRequestResponse;
-import org.jdfs.storage.request.FileResponse;
+import org.jdfs.commons.request.JdfsDataResponse;
+import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.storage.request.ReadFileRequest;
 import org.jdfs.storage.request.RemoveFileRequest;
 import org.jdfs.storage.request.UpdateFileRequest;
@@ -68,8 +67,9 @@ public class StorageClientTest {
 			b.append("line ").append(i).append('\n').append(line).append('\n');
 		}
 		b.append("----------------------------------------finished-------------------------------------------------");
-		UpdateFileRequest request = new UpdateFileRequest(100l, b.toString()
-				.getBytes("UTF-8"));
+		UpdateFileRequest request = new UpdateFileRequest(100l);
+		request.setData(b.toString().getBytes("UTF-8"));
+		//request.setSize(request.getData().length);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -122,9 +122,9 @@ public class StorageClientTest {
 		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
-			if (message instanceof FileRequestResponse) {
+			if (message instanceof JdfsStatusResponse) {
 				System.out.println("recv resp: "
-						+ ((FileRequestResponse) message).getStatus());
+						+ ((JdfsStatusResponse) message).getStatus());
 			} else {
 				System.out.println("recv: " + message);
 			}
@@ -148,8 +148,8 @@ public class StorageClientTest {
 		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
-			if (message instanceof FileDataResponse) {
-				String msg = new String(((FileDataResponse) message).getData(),
+			if (message instanceof JdfsDataResponse) {
+				String msg = new String(((JdfsDataResponse) message).getData(),
 						"UTF-8");
 				System.out.println("recv data: "
 						+ StringUtils.abbreviate(msg, 100));

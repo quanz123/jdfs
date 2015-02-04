@@ -7,36 +7,40 @@ import org.jdfs.commons.request.JdfsFileRequest;
 
 /**
  * jdfs文件请求的基本实现
+ * 
  * @author James Quan
  * @version 2015年2月3日 下午10:36:13
  */
-public abstract class JdfsFileRequestMesageDecoder<T extends JdfsFileRequest> extends JdfsRequestMessageDecoder<T>{
+public abstract class JdfsFileRequestMessageDecoder<T extends JdfsFileRequest>
+		extends JdfsRequestMessageDecoder<T> {
 
 	@Override
 	protected MessageDecoderResult decodeRequest(DecoderState<T> state,
-			IoSession session, IoBuffer in) {
+			IoSession session, IoBuffer in) throws Exception {
 		T request = state.getRequest();
-		if(state.getState() == 1) {
-			if(in.remaining() < 8) {
+		if (state.getState() == 1) {
+			if (in.remaining() < 8) {
 				return MessageDecoderResult.NEED_DATA;
 			}
 			long id = in.getLong();
 			request.setId(id);
 			state.toNextState();
 		}
-		return  decodeFileRequest(state, session, in);
+		return decodeFileRequest(state, session, in);
 	}
 
 	/**
-	 * 供子类重写的请求解码回调函数，用于实现对文件请求的其他参数的解码
+	 * 供子类重写的请求解码回调函数，用于实现对请求代码和文件id以外的其他参数的解码
 	 * 
-	 * @param state 缓存解码过程的状态对象
+	 * @param state
+	 *            缓存解码过程的状态对象
 	 * @param session
 	 * @param in
 	 * @return
+	 * @throws Exception
 	 */
-	protected MessageDecoderResult decodeFileRequest(DecoderState<T> state, IoSession session,
-			IoBuffer in) {
+	protected MessageDecoderResult decodeFileRequest(DecoderState<T> state,
+			IoSession session, IoBuffer in) throws Exception {
 		return MessageDecoderResult.OK;
 	}
 }

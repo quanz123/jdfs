@@ -2,40 +2,36 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
-
   
   <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
         <entry key="org.jdfs.storage.request.ReadFileRequest">
-          <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder" />
         </entry>
         <entry key="org.jdfs.storage.request.RemoveFileRequest">
-          <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageEncoder" />
         </entry>
         <entry key="org.jdfs.storage.request.UpdateFileRequest">
-          <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder"/>
+          <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.storage.request.FileRequestResponse">
-          <bean class="org.jdfs.storage.codec.FileRequestResponseMessageEncoder" />
+        <entry key="org.jdfs.commons.request.JdfsStatusResponse">
+          <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.storage.request.FileDataResponse">
-          <bean class="org.jdfs.storage.codec.FileDataResponseMessageEncoder" />
+        <entry key="org.jdfs.commons.request.JdfsDataResponse">
+          <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageEncoder" />
         </entry>
       </map>
     </property>
     <property name="decoders">
       <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
-        <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder"/>
-        <bean class="org.jdfs.storage.codec.FileRequestResponseMessageDecoder" />
-        <bean class="org.jdfs.storage.codec.FileDataResponseMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder" />
+        <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageDecoder" />
       </array>
     </property>
   </bean>
   
- <!--boss server  -->
-  <!--  bean id="bossSampleHandler" class="org.jdfs.tracker.client.HandlerOne" /  -->
-
 </beans>        

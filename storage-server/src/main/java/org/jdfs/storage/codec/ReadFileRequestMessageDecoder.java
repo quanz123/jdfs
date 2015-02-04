@@ -2,36 +2,42 @@ package org.jdfs.storage.codec;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
-import org.jdfs.storage.request.FileRequest;
+import org.jdfs.commons.codec.DecoderState;
+import org.jdfs.commons.codec.JdfsFileRequestMessageDecoder;
+import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.storage.request.ReadFileRequest;
 
 /**
+ * 用于对{@link ReadFileRequest}进行解码的解码器
  * 
  * @author James Quan
- * @version 2015年1月31日 上午9:50:38
+ * @version 2015年2月4日 下午3:14:08
  */
-public class ReadFileRequestMessageDecoder extends FileRequestMessageDecoder {
+public class ReadFileRequestMessageDecoder extends
+		JdfsFileRequestMessageDecoder<ReadFileRequest> {
 
 	@Override
-	protected boolean support(int code) {
-		return code == FileRequest.REQUEST_READ;
+	protected int getRequestCode() {
+		return JdfsRequestConstants.REQUEST_DATA_READ;
 	}
 
 	@Override
-	public MessageDecoderResult decode(IoSession session, IoBuffer in,
-			ProtocolDecoderOutput out) throws Exception {
-		if (in.remaining() < 36) {
+	protected ReadFileRequest createRequest(int code) {
+		return new ReadFileRequest();
+	}
+
+	@Override
+	protected MessageDecoderResult decodeFileRequest(
+			DecoderState<ReadFileRequest> state, IoSession session, IoBuffer in) {
+		ReadFileRequest request = state.getRequest();
+		if (in.remaining() < 12) {
 			return MessageDecoderResult.NEED_DATA;
 		}
-		int code = in.getInt();
-		long id = in.getLong();
-		long start = in.getLong();
-		long end = in.getLong();
-		long length = in.getLong();
-		ReadFileRequest request = new ReadFileRequest(id, start, end, length);
-		out.write(request);
+		long offset = in.getLong();
+		int length = in.getInt();
+		request.setOffset(offset);
+		request.setLength(length);
 		return MessageDecoderResult.OK;
 	}
 }
