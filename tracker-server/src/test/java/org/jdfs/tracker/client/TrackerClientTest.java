@@ -52,7 +52,7 @@ public class TrackerClientTest {
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+				2200));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		long now = DateTime.now().getMillis();
 		UpdateFileInfoRequest request = new UpdateFileInfoRequest(100l);

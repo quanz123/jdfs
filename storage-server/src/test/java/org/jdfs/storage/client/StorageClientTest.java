@@ -54,7 +54,7 @@ public class StorageClientTest {
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+				2210));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		StringBuilder b = new StringBuilder();
 		b.append("测试test信息123:").append(new Date()).append('\n');
