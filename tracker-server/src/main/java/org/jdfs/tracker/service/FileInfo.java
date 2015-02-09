@@ -15,6 +15,7 @@ public class FileInfo implements Serializable {
 	private String name;
 	private long size;
 	private DateTime lastModified;
+	private String group;
 
 	public FileInfo() {
 		super();
@@ -26,8 +27,9 @@ public class FileInfo implements Serializable {
 		name = file.getName();
 		size = file.getSize();
 		lastModified = file.getLastModified();
+		group = file.getGroup();
 	}
-	
+
 	public long getId() {
 		return id;
 	}
@@ -58,5 +60,13 @@ public class FileInfo implements Serializable {
 
 	public void setLastModified(DateTime lastModified) {
 		this.lastModified = lastModified;
+	}
+
+	public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
 	}
 }

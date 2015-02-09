@@ -4,7 +4,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.jdfs.commons.codec.JdfsFileRequestMessageEncoder;
 import org.jdfs.tracker.request.ReadFileInfoRequest;
-import org.jdfs.tracker.request.RemoveFileInfoRequest;
 
 /**
  * 用于对{@link ReadFileInfoRequest}进行编码的编码器

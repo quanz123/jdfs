@@ -12,13 +12,17 @@
   <artifactId>tracker-server</artifactId>
   <name>tracker-server</name>
   <dependencies>
-      <dependency>
-        <groupId>org.jdfs</groupId>
-        <artifactId>jdfs-commons</artifactId>
-      </dependency>
+    <dependency>
+      <groupId>org.jdfs</groupId>
+      <artifactId>jdfs-commons</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-joda</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

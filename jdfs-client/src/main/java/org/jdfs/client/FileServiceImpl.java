@@ -1,6 +1,8 @@
 package org.jdfs.client;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
+import org.jdfs.storage.request.UpdateFileRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -22,6 +25,7 @@ public class FileServiceImpl implements FileService, InitializingBean,
 		DisposableBean {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	private int chunkSize = 64 * 1024;
+	private long connectTimeout = 2000 * 1000l;
 	private InetSocketAddress[] trackers = new InetSocketAddress[] { new InetSocketAddress(
 			"localhost", 2200) };
 	private ProtocolCodecFactory codecFactory;
@@ -29,6 +33,7 @@ public class FileServiceImpl implements FileService, InitializingBean,
 	private IoHandler handler;
 	
 	private boolean needDestroy=false;
+	private int currentTracker = 0;
 
 	public int getChunkSize() {
 		return chunkSize;
@@ -38,6 +43,14 @@ public class FileServiceImpl implements FileService, InitializingBean,
 		this.chunkSize = maxChunkSize;
 	}
 
+	public int getConnectTimeout() {
+		return (int)(connectTimeout/ 1000l);
+	}
+	
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout * 1000l;
+	}
+	
 	public String[] getTrackers() {
 		if(trackers == null || trackers.length == 0) {
 			return new String[0];
@@ -116,10 +129,25 @@ public class FileServiceImpl implements FileService, InitializingBean,
 
 	@Override
 	public FileInfo updateFile(long id, String name, InputStream data,
-			long offset, long size) {
-		
+			long offset, long size) throws IOException{
+		InetSocketAddress tracker = getTrackerAddress();
+		ConnectFuture cf = connector.connect(tracker);
+		if(!cf.awaitUninterruptibly(connectTimeout)){
+			logger.error("connect tracker {} error!", tracker);
+			throw new IOException("connect tracker " + tracker + " error!");
+		}
+		int c= (int) Math.ceil(size / chunkSize);
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	
+	protected InetSocketAddress getTrackerAddress() {
+		if(trackers.length == 1) {
+			return trackers[0];
+		}
+		InetSocketAddress tracker = trackers[0];
+		currentTracker = currentTracker + 1 % trackers.length;
+		return tracker;
+	}
 }

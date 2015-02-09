@@ -17,6 +17,10 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>org.jdfs</groupId>
+      <artifactId>jdfs-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-joda</artifactId>
     </dependency>

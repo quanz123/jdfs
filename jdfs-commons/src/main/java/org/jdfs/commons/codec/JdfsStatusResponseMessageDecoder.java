@@ -22,7 +22,7 @@ public class JdfsStatusResponseMessageDecoder extends
 
 	@Override
 	protected JdfsStatusResponse createRequest(int code) {
-		return new JdfsStatusResponse(code);
+		return new JdfsStatusResponse();
 	}
 
 	@Override

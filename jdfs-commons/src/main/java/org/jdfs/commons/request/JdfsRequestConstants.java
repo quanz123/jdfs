@@ -22,7 +22,17 @@ public interface JdfsRequestConstants {
 	 * 读取文件信息的请求代码
 	 */
 	public int REQUEST_INFO_READ = 103;
-
+	
+	/**
+	 * 请求获取数据上传服务器地址的请求代码
+	 */
+	public int REQUEST_UPLOAD_SERVER = 104;
+	
+	/**
+	 * 请求获取数据下载服务器地址的请求代码
+	 */
+	public int REQUEST_DOWNLOAD_SERVER = 105;
+	
 	/**
 	 * 保存文件数据的请求代码
 	 */
@@ -37,22 +47,31 @@ public interface JdfsRequestConstants {
 	 * 读取文件数据的请求代码
 	 */
 	public int REQUEST_DATA_READ = 203;
+	
+	/**
+	 * 读取文件数据的校验值
+	 */
+	public int REQUEST_DATA_CHECKSUM = 204;
 
 	/**
 	 * 返回处理的结果状态的请求代码
 	 */
-	public int REQUEST_STATUS_RESULT = 501;
+	public int REQUEST_STATUS_RESULT = 301;
 
 	/**
 	 * 返回处理的结果数据的请求代码
 	 */
-	public int REQUEST_DATA_RESULT = 502;
+	public int REQUEST_DATA_RESULT = 302;
 
 	/**
 	 * 返回读取到的文件信息的请求代码
 	 */
-	public int REQUEST_INFO_RESULT = 503;
+	public int REQUEST_INFO_RESULT = 303;
 
+	/**
+	 * 通告server信息的请求代码
+	 */
+	public int REQUEST_SERVER_INFO = 401;
 	
 	// ------------------------------------处理结果代码
 
@@ -65,4 +84,9 @@ public interface JdfsRequestConstants {
 	 * 待处理的文件不存在
 	 */
 	public int STATUS_FILE_NOT_FOUND = 1;
+	
+	/**
+	 * 没有可用的存储服务器
+	 */
+	public int STATUS_STORAGE_NOT_FOUND = 101;
 }
