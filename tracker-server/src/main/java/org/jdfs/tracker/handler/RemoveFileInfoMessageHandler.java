@@ -22,23 +22,24 @@ public class RemoveFileInfoMessageHandler implements
 	public FileInfoService getFileInfoService() {
 		return fileInfoService;
 	}
-	
+
 	public void setFileInfoService(FileInfoService fileInfoService) {
 		this.fileInfoService = fileInfoService;
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(fileInfoService, "fileInfoService is required!");
 	}
-	
+
 	@Override
 	public void handleMessage(IoSession session, RemoveFileInfoRequest message)
 			throws Exception {
 		long id = message.getId();
 		fileInfoService.removeFileInfo(id);
-		JdfsStatusResponse resp = new JdfsStatusResponse(
-				JdfsRequestConstants.STATUS_OK);
-		session.write(resp);		
+		JdfsStatusResponse resp = new JdfsStatusResponse();
+		resp.setBatchId(message.getBatchId());
+		resp.setStatus(JdfsRequestConstants.STATUS_OK);
+		session.write(resp);
 	}
 }

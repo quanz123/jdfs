@@ -17,6 +17,6 @@ public class GetCheckSumRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			GetCheckSumRequest message) throws Exception {
-		return IoBuffer.allocate(12, false);
+		return IoBuffer.allocate(16, false);
 	}
 }

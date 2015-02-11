@@ -18,37 +18,8 @@ public class UpdateFileInfoRequest extends JdfsFileRequest {
 	 * 空白构造函数
 	 */
 	public UpdateFileInfoRequest() {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE);
-	}
-
-	/**
-	 * 指定待保存文件id的构造函数
-	 * 
-	 * @param id
-	 *            文件id
-	 */
-	public UpdateFileInfoRequest(long id) {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE, id);
-	}
-
-	/**
-	 * 直接指定文件信息的构造函数
-	 * 
-	 * @param id
-	 *            文件id
-	 * @param name
-	 *            文件名字
-	 * @param size
-	 *            文件大小
-	 * @param lastModified
-	 *            文件的最后修改时间
-	 */
-	public UpdateFileInfoRequest(long id, String name, long size,
-			long lastModified) {
-		super(JdfsRequestConstants.REQUEST_INFO_UPDATE, id);
-		this.name = name;
-		this.size = size;
-		this.lastModified = lastModified;
+		super();
+		setCode(JdfsRequestConstants.REQUEST_INFO_UPDATE);
 	}
 
 	/**

@@ -16,6 +16,6 @@ public class RemoveFileRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			RemoveFileInfoRequest message) {
-		return IoBuffer.allocate(12, false);
+		return IoBuffer.allocate(16, false);
 	}
 }

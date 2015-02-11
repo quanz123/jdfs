@@ -21,8 +21,10 @@ public class JdfsDataResponseMessageDecoder extends
 	}
 
 	@Override
-	protected JdfsDataResponse createRequest(int code) {
-		return new JdfsDataResponse(code);
+	protected JdfsDataResponse createRequest(int batchId, int code) {
+		JdfsDataResponse resp = new JdfsDataResponse();
+		resp.setBatchId(batchId);
+		return resp;
 	}
 
 	@Override

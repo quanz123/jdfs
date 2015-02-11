@@ -45,8 +45,9 @@ public class UpdateFileMessageHandler implements
 		if (l > 0) {
 			storeService.storeFile(id, position, data);
 		}
-		JdfsStatusResponse resp = new JdfsStatusResponse(
-				JdfsRequestConstants.STATUS_OK);
+		JdfsStatusResponse resp = new JdfsStatusResponse();
+		resp.setBatchId(message.getBatchId());
+		resp.setStatus(JdfsRequestConstants.STATUS_OK);
 		session.write(resp);
 	}
 }

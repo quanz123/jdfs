@@ -24,8 +24,10 @@ public class FileInfoResponseMessageDecoder extends
 	}
 
 	@Override
-	protected FileInfoResponse createRequest(int code) {
-		return new FileInfoResponse();
+	protected FileInfoResponse createRequest(int batchId, int code) {
+		FileInfoResponse f = new FileInfoResponse();
+		f.setBatchId(batchId);
+		return f;
 	}
 
 	@Override

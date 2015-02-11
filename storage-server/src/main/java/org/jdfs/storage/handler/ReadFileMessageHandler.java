@@ -14,11 +14,12 @@ import org.springframework.util.Assert;
 
 /**
  * 读取文件请求的处理器
+ * 
  * @author James Quan
  * @version 2015年2月4日 下午3:21:40
  */
-public class ReadFileMessageHandler implements
-		MessageHandler<ReadFileRequest>, InitializingBean {
+public class ReadFileMessageHandler implements MessageHandler<ReadFileRequest>,
+		InitializingBean {
 	private StoreService storeService;
 
 	public StoreService getStoreService() {
@@ -38,23 +39,24 @@ public class ReadFileMessageHandler implements
 	public void handleMessage(IoSession session, ReadFileRequest message)
 			throws Exception {
 		long id = message.getId();
-		File file  = storeService.readFile(id);
-		if(file == null) {
-			JdfsDataResponse resp = new JdfsDataResponse(
-					JdfsRequestConstants.STATUS_FILE_NOT_FOUND);
-			session.write(resp);			
+		File file = storeService.readFile(id);
+		if (file == null) {
+			JdfsDataResponse resp = new JdfsDataResponse();
+			resp.setStatus(JdfsRequestConstants.STATUS_FILE_NOT_FOUND);
+			session.write(resp);
 		} else {
-			JdfsDataResponse resp = new JdfsDataResponse(
-					JdfsRequestConstants.STATUS_OK);
-			long offset = Math.max(0,  message.getOffset());
+			JdfsDataResponse resp = new JdfsDataResponse();
+			resp.setStatus(JdfsRequestConstants.STATUS_OK);
+			resp.setBatchId(message.getBatchId());
+			long offset = Math.max(0, message.getOffset());
 			int length = message.getLength();
-			if(length < 0) {
+			if (length < 0) {
 				length = (int) file.length();
 			}
-			if(length > 0) {
+			if (length > 0) {
 				RandomAccessFile raf = new RandomAccessFile(file, "r");
-				try{				
-					if(offset > 0) {
+				try {
+					if (offset > 0) {
 						raf.seek(offset);
 					}
 					byte[] buf = new byte[length];
@@ -62,9 +64,9 @@ public class ReadFileMessageHandler implements
 					resp.setData(buf);
 				} finally {
 					raf.close();
-				}				
+				}
 			}
-			session.write(resp);			
-		}		
+			session.write(resp);
+		}
 	}
 }

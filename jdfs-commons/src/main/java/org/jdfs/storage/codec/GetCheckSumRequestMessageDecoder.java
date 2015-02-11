@@ -17,7 +17,9 @@ public class GetCheckSumRequestMessageDecoder extends JdfsFileRequestMessageDeco
 	}
 
 	@Override
-	protected GetCheckSumRequest createRequest(int code) {
-		return new GetCheckSumRequest();
+	protected GetCheckSumRequest createRequest(int batchId, int code) {
+		GetCheckSumRequest r = new GetCheckSumRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 }

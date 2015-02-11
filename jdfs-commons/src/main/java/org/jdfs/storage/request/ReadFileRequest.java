@@ -53,27 +53,8 @@ public class ReadFileRequest extends JdfsFileRequest {
 	 * 空白构造函数
 	 */
 	public ReadFileRequest() {
-		super(JdfsRequestConstants.REQUEST_DATA_READ);
-	}
-
-	/**
-	 * 详细指定文件id及读取设置的构造函数
-	 * @param id 待读取的文件的id
-	 * @param offset 文件内容读取的起始位置
-	 * @param length 文件内容读取的长度，如果为-1表示读取所有内容
-	 */
-	public ReadFileRequest(long id, long offset, int length) {
-		super(JdfsRequestConstants.REQUEST_DATA_READ, id);
-		setOffset(offset);
-		setLength(length);
-	}
-	
-	/**
-	 * 指定文件id的构造函数
-	 * @param id
-	 */
-	public ReadFileRequest(long id) {
-		super(JdfsRequestConstants.REQUEST_DATA_READ, id);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_DATA_READ);
 	}
 
 }

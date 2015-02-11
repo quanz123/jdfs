@@ -5,7 +5,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.jdfs.commons.codec.JdfsFileRequestMessageEncoder;
 import org.jdfs.storage.request.ReadFileRequest;
-import org.jdfs.storage.request.UpdateFileRequest;
 
 /**
  * 用于对{@link ReadFileRequest}进行编码的编码器
@@ -18,7 +17,7 @@ public class ReadFileRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			ReadFileRequest message) {
-		return IoBuffer.allocate(24, false);
+		return IoBuffer.allocate(28, false);
 	}
 	
 	@Override

@@ -45,25 +45,7 @@ public class JdfsStatusResponse extends JdfsRequest {
 	 * 空白构造函数
 	 */
 	public JdfsStatusResponse() {
-		super(JdfsRequestConstants.REQUEST_STATUS_RESULT);
-	}
-
-	/**
-	 * 指定结果代码的构造函数
-	 * @param status
-	 */
-	public JdfsStatusResponse(int status) {
-		this();
-		setStatus(status);
-	}
-
-	/**
-	 * 指定结果代码和信息的构造函数
-	 * @param status
-	 * @param message
-	 */
-	public JdfsStatusResponse(int status, String message) {
-		this(status);
-		setMessage(message);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_STATUS_RESULT);
 	}
 }

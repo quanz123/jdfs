@@ -105,37 +105,7 @@ public class FileInfoResponse extends JdfsRequest {
 	 * 空白构造函数
 	 */
 	public FileInfoResponse() {
-		super(JdfsRequestConstants.REQUEST_INFO_RESULT);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_INFO_RESULT);
 	}
-
-	/**
-	 * 指定结果代码的构造函数
-	 * @param status
-	 */
-	public FileInfoResponse(int status) {
-		this();
-		setStatus(status);
-	}
-
-	/**
-	 * 直接指定文件信息的构造函数
-	 * 
-	 * @param id
-	 *            文件id
-	 * @param name
-	 *            文件名字
-	 * @param size
-	 *            文件大小
-	 * @param lastModified
-	 *            文件的最后修改时间
-	 */
-	public FileInfoResponse(long id, String name, long size,
-			long lastModified) {
-		super(JdfsRequestConstants.REQUEST_INFO_RESULT);
-		this.id = id;
-		this.name = name;
-		this.size = size;
-		this.lastModified = lastModified;
-	}
-
 }

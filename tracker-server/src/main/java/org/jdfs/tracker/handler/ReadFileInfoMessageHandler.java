@@ -23,28 +23,35 @@ public class ReadFileInfoMessageHandler implements
 	public FileInfoService getFileInfoService() {
 		return fileInfoService;
 	}
-	
+
 	public void setFileInfoService(FileInfoService fileInfoService) {
 		this.fileInfoService = fileInfoService;
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(fileInfoService, "fileInfoService is required!");
 	}
-	
+
 	@Override
 	public void handleMessage(IoSession session, ReadFileInfoRequest message)
 			throws Exception {
 		long id = message.getId();
 		FileInfo file = fileInfoService.getFileInfo(id);
 		FileInfoResponse resp;
-		if(file == null) {
-			 resp = new FileInfoResponse(
-						JdfsRequestConstants.STATUS_FILE_NOT_FOUND);
+		if (file == null) {
+			resp = new FileInfoResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_FILE_NOT_FOUND);
 		} else {
-			resp = new FileInfoResponse(file.getId(), file.getName(), file.getSize(), file.getLastModified().getMillis());
+			resp = new FileInfoResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_OK);
+			resp.setId(file.getId());
+			resp.setName(file.getName());
+			resp.setSize(file.getSize());
+			resp.setLastModified(file.getLastModified().getMillis());
 		}
-		session.write(resp);		
+		session.write(resp);
 	}
 }

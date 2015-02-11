@@ -22,7 +22,7 @@ public abstract class JdfsFileRequestMessageEncoder<T extends JdfsFileRequest>
 	}
 
 	/**
-	 * 供子类重写的回调函数，用于输出请求中除功能代码和文件id以外的数据
+	 * 供子类重写的回调函数，用于输出请求中除分组id、功能代码和文件id以外的数据
 	 * 
 	 * @param message
 	 *            待输出的请求

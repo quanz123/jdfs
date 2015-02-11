@@ -21,8 +21,10 @@ public class JdfsStatusResponseMessageDecoder extends
 	}
 
 	@Override
-	protected JdfsStatusResponse createRequest(int code) {
-		return new JdfsStatusResponse();
+	protected JdfsStatusResponse createRequest(int batchId, int code) {
+		JdfsStatusResponse r = new JdfsStatusResponse();
+		r.setBatchId(batchId);
+		return r;
 	}
 
 	@Override

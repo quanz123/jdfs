@@ -17,7 +17,9 @@ public class ReadFileRequestMessageDecoder extends JdfsFileRequestMessageDecoder
 	}
 
 	@Override
-	protected ReadFileInfoRequest createRequest(int code) {
-		return new ReadFileInfoRequest();
+	protected ReadFileInfoRequest createRequest(int batchId, int code) {
+		ReadFileInfoRequest r = new ReadFileInfoRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 }

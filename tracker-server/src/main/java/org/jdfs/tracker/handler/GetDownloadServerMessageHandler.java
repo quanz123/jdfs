@@ -16,38 +16,40 @@ import org.springframework.util.Assert;
  * @author James Quan
  * @version 2015年2月8日 下午3:38:19
  */
-public class GetDownloadServerMessageHandler  implements
-MessageHandler<GetDownloadServerRequest>, InitializingBean {
+public class GetDownloadServerMessageHandler implements
+		MessageHandler<GetDownloadServerRequest>, InitializingBean {
 	private TrackerService trackerService;
-	
+
 	public TrackerService getTrackerService() {
 		return trackerService;
 	}
-	
+
 	public void setTrackerService(TrackerService trackerService) {
 		this.trackerService = trackerService;
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(trackerService, "trackerService is required!");
 	}
-	
+
 	@Override
-	public void handleMessage(IoSession session, GetDownloadServerRequest message)
-			throws Exception {
+	public void handleMessage(IoSession session,
+			GetDownloadServerRequest message) throws Exception {
 		long id = message.getId();
 		String address = trackerService.getDownloadServerAddress(id);
-		if(StringUtils.isEmpty(address)) {
-			JdfsStatusResponse resp = new JdfsStatusResponse(
-					JdfsRequestConstants.STATUS_STORAGE_NOT_FOUND);
+		if (StringUtils.isEmpty(address)) {
+			JdfsStatusResponse resp = new JdfsStatusResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_STORAGE_NOT_FOUND);
 			session.write(resp);
 		} else {
-			JdfsStatusResponse resp = new JdfsStatusResponse(
-					JdfsRequestConstants.STATUS_OK);
+			JdfsStatusResponse resp = new JdfsStatusResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_OK);
 			resp.setMessage(address);
 			session.write(resp);
 			return;
 		}
-	}	
+	}
 }

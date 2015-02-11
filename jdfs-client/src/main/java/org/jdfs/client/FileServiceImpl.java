@@ -2,12 +2,14 @@ package org.jdfs.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoHandler;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
@@ -15,6 +17,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.jdfs.storage.request.UpdateFileRequest;
+import org.jdfs.tracker.request.GetUploadServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -136,6 +139,12 @@ public class FileServiceImpl implements FileService, InitializingBean,
 			logger.error("connect tracker {} error!", tracker);
 			throw new IOException("connect tracker " + tracker + " error!");
 		}
+		IoSession session = cf.getSession();
+		GetUploadServerRequest request = new GetUploadServerRequest();
+		request.setId(id);
+		WriteFuture wf = session.write(request);
+		
+		
 		int c= (int) Math.ceil(size / chunkSize);
 		// TODO Auto-generated method stub
 		return null;
@@ -150,4 +159,5 @@ public class FileServiceImpl implements FileService, InitializingBean,
 		currentTracker = currentTracker + 1 % trackers.length;
 		return tracker;
 	}
+	
 }

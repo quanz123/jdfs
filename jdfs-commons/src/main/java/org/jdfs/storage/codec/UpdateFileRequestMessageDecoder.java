@@ -21,8 +21,10 @@ public class UpdateFileRequestMessageDecoder extends JdfsFileRequestMessageDecod
 	}
 
 	@Override
-	protected UpdateFileRequest createRequest(int code) {
-		return new UpdateFileRequest();
+	protected UpdateFileRequest createRequest(int batchId, int code) {
+		UpdateFileRequest r = new UpdateFileRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 
 	@Override

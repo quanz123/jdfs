@@ -20,7 +20,7 @@ public class UpdateFileRequestMessageEncoder extends
 			UpdateFileRequest message) {
 		byte[] data = message.getData();
 		int l = data == null ? 0 : data.length;
-		return IoBuffer.allocate(32 + l, false);
+		return IoBuffer.allocate(36 + l, false);
 	}
 	
 	@Override

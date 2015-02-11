@@ -16,7 +16,7 @@ public class JdfsDataResponseMessageEncoder extends JdfsRequestMessageEncoder<Jd
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			JdfsDataResponse message) throws Exception{
-		int l = 16;
+		int l = 20;
 		String msg = message.getMessage();
 		if(!StringUtils.isEmpty(msg)) {
 			l += msg.length() * 3;
@@ -26,7 +26,7 @@ public class JdfsDataResponseMessageEncoder extends JdfsRequestMessageEncoder<Jd
 			l += data.length;
 		}
 		IoBuffer buf;
-		if(l == 16) {
+		if(l == 20) {
 			buf =  IoBuffer.allocate(l, false);
 		} else {
 			buf =  IoBuffer.allocate(l, false);

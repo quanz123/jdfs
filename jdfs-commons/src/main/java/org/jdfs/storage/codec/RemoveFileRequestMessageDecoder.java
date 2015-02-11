@@ -17,7 +17,9 @@ public class RemoveFileRequestMessageDecoder extends JdfsFileRequestMessageDecod
 	}
 
 	@Override
-	protected RemoveFileRequest createRequest(int code) {
-		return new RemoveFileRequest();
+	protected RemoveFileRequest createRequest(int batchId, int code) {
+		RemoveFileRequest r = new RemoveFileRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 }

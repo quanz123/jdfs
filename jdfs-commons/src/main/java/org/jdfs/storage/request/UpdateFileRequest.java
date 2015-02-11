@@ -70,16 +70,8 @@ public class UpdateFileRequest extends JdfsFileRequest {
 	 * 空白构造函数
 	 */
 	public UpdateFileRequest() {
-		super(JdfsRequestConstants.REQUEST_DATA_UPDATE);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_DATA_UPDATE);
 	}
 
-	/**
-	 * 指定待更新文件的构造函数
-	 * 
-	 * @param id
-	 *            待更新文件的id
-	 */
-	public UpdateFileRequest(long id) {
-		super(JdfsRequestConstants.REQUEST_DATA_UPDATE, id);
-	}
 }

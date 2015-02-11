@@ -39,12 +39,14 @@ public class GetUploadServerMessageHandler implements
 		long id = message.getId();
 		String address = trackerService.getUploadServerAddress(id);
 		if (StringUtils.isEmpty(address)) {
-			JdfsStatusResponse resp = new JdfsStatusResponse(
-					JdfsRequestConstants.STATUS_STORAGE_NOT_FOUND);
+			JdfsStatusResponse resp = new JdfsStatusResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_STORAGE_NOT_FOUND);
 			session.write(resp);
 		} else {
-			JdfsStatusResponse resp = new JdfsStatusResponse(
-					JdfsRequestConstants.STATUS_OK);
+			JdfsStatusResponse resp = new JdfsStatusResponse();
+			resp.setBatchId(message.getBatchId());
+			resp.setStatus(JdfsRequestConstants.STATUS_OK);
 			resp.setMessage(address);
 			session.write(resp);
 			return;

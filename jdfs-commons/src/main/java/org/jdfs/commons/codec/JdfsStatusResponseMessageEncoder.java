@@ -19,9 +19,9 @@ public class JdfsStatusResponseMessageEncoder extends JdfsRequestMessageEncoder<
 		String msg = message.getMessage(); 
 		IoBuffer buf;
 		if(StringUtils.isEmpty(msg)) {
-			buf =  IoBuffer.allocate(12, false);
+			buf =  IoBuffer.allocate(16, false);
 		} else {
-			buf =  IoBuffer.allocate(12 + msg.length() * 3, false);
+			buf =  IoBuffer.allocate(16 + msg.length() * 3, false);
 			buf.setAutoExpand(true);
 		}
 		return buf;

@@ -63,6 +63,7 @@ public class JdfsServerInfoRequest extends JdfsRequest {
 	 * 空白构造函数
 	 */
 	public JdfsServerInfoRequest() {
-		super(JdfsRequestConstants.REQUEST_SERVER_INFO);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_SERVER_INFO);
 	}
 }

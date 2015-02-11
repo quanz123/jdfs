@@ -17,7 +17,9 @@ public class GetDownloadServerRequestMessageDecoder extends JdfsFileRequestMessa
 	}
 
 	@Override
-	protected GetDownloadServerRequest createRequest(int code) {
-		return new GetDownloadServerRequest();
+	protected GetDownloadServerRequest createRequest(int batchId, int code) {
+		GetDownloadServerRequest r = new GetDownloadServerRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 }

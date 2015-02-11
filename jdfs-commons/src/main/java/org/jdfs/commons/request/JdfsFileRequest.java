@@ -18,25 +18,29 @@ public class JdfsFileRequest extends JdfsRequest {
 	}
 
 	/**
-	 * 直接指定请求代码的构造函数
+	 * 直接指定请求分组id及请求代码的构造函数
 	 * 
+	 * @param batchId
+	 *            请求所隶属的分组的id
 	 * @param code
 	 *            请求的功能代码
 	 */
-	public JdfsFileRequest(int code) {
-		super(code);
+	public JdfsFileRequest(int batchId, int code) {
+		super(batchId, code);
 	}
 
 	/**
-	 * 直接指定请求代码和所处理文件的id的构造函数
+	 * 直接指定请求分组id、请求代码和所处理文件的id的构造函数
 	 * 
+	 * @param batchId
+	 *            请求所隶属的分组的id
 	 * @param code
 	 *            请求的功能代码
 	 * @param id
 	 *            所处理的文件的id
 	 */
-	public JdfsFileRequest(int code, long id) {
-		super(code);
+	public JdfsFileRequest(int batchId, int code, long id) {
+		super(batchId, code);
 		this.id = id;
 	}
 

@@ -30,7 +30,7 @@ public abstract class JdfsFileRequestMessageDecoder<T extends JdfsFileRequest>
 	}
 
 	/**
-	 * 供子类重写的请求解码回调函数，用于实现对请求代码和文件id以外的其他参数的解码
+	 * 供子类重写的请求解码回调函数，用于实现分组id、请求代码和文件id以外的其他参数的解码
 	 * 
 	 * @param state
 	 *            缓存解码过程的状态对象

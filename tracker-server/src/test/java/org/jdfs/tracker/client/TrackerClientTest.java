@@ -27,6 +27,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class TrackerClientTest {
 
 	private ProtocolCodecFactory codecFactory;
+	private String host = "localhost";
+	private int port = 2200;
 
 	public ProtocolCodecFactory getCodecFactory() {
 		return codecFactory;
@@ -35,6 +37,22 @@ public class TrackerClientTest {
 	@Autowired
 	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	@Before
@@ -51,15 +69,15 @@ public class TrackerClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2200));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		long now = DateTime.now().getMillis();
-		UpdateFileInfoRequest request = new UpdateFileInfoRequest(100l);
+		UpdateFileInfoRequest request = new UpdateFileInfoRequest();
+		request.setId(100l);
 		request.setName("file测试_" + now);
 		request.setSize(100);
 		request.setLastModified(now);
-		//request.setSize(request.getData().length);
+		// request.setSize(request.getData().length);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -77,10 +95,10 @@ public class TrackerClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
-		ReadFileInfoRequest request = new ReadFileInfoRequest(100l);
+		ReadFileInfoRequest request = new ReadFileInfoRequest();
+		request.setId(100l);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -95,10 +113,10 @@ public class TrackerClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
-		RemoveFileInfoRequest request = new RemoveFileInfoRequest(100l);
+		RemoveFileInfoRequest request = new RemoveFileInfoRequest();
+		request.setId(100l);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -139,13 +157,15 @@ public class TrackerClientTest {
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
 			if (message instanceof FileInfoResponse) {
-				FileInfoResponse resp = (FileInfoResponse)message;
+				FileInfoResponse resp = (FileInfoResponse) message;
 				System.out.println("recv file info: ");
 				System.out.println("status: " + resp.getStatus());
 				System.out.println("id: " + resp.getId());
 				System.out.println("name: " + resp.getName());
 				System.out.println("size: " + resp.getSize());
-				System.out.println("lastModified: " + new DateTime(resp.getLastModified()).toString("yyyy-M-d H:mm:ss"));
+				System.out.println("lastModified: "
+						+ new DateTime(resp.getLastModified())
+								.toString("yyyy-M-d H:mm:ss"));
 			} else {
 				System.out.println("recv: " + message);
 			}

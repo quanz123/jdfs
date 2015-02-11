@@ -17,6 +17,6 @@ public class GetUploadServerRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			GetUploadServerRequest message) throws Exception {
-		return IoBuffer.allocate(12, false);
+		return IoBuffer.allocate(16, false);
 	}
 }

@@ -21,9 +21,9 @@ public class UpdateFileRequestMessageEncoder extends
 			UpdateFileInfoRequest message) {
 		String name = message.getName();
 		if(StringUtils.isEmpty(name)) {
-			return IoBuffer.allocate(32, false);
+			return IoBuffer.allocate(36, false);
 		} else {
-			IoBuffer buf = IoBuffer.allocate(32 + name.length() * 3, false);
+			IoBuffer buf = IoBuffer.allocate(36 + name.length() * 3, false);
 			buf.setAutoExpand(true);
 			return buf;
 		}

@@ -37,8 +37,9 @@ public class RemoveFileMessageHandler implements
 			throws Exception {
 		long id = message.getId();
 		storeService.removeFile(id);
-		JdfsStatusResponse resp = new JdfsStatusResponse(
-				JdfsRequestConstants.STATUS_OK);
+		JdfsStatusResponse resp = new JdfsStatusResponse();
+		resp.setBatchId(message.getBatchId());
+		resp.setStatus(JdfsRequestConstants.STATUS_OK);
 		session.write(resp);
 	}
 }

@@ -16,6 +16,6 @@ public class ReadFileRequestMessageEncoder extends
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			ReadFileInfoRequest message) {
-		return IoBuffer.allocate(12, false);
+		return IoBuffer.allocate(16, false);
 	}
 }

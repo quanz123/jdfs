@@ -39,8 +39,10 @@ public class JdfsServerInfoRequestMessageDecoder extends
 	}
 
 	@Override
-	protected JdfsServerInfoRequest createRequest(int code) {
-		return new JdfsServerInfoRequest();
+	protected JdfsServerInfoRequest createRequest(int batchId, int code) {
+		JdfsServerInfoRequest r =  new JdfsServerInfoRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 
 	@Override

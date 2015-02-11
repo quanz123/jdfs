@@ -67,7 +67,8 @@ public class StorageClientTest {
 			b.append("line ").append(i).append('\n').append(line).append('\n');
 		}
 		b.append("----------------------------------------finished-------------------------------------------------");
-		UpdateFileRequest request = new UpdateFileRequest(100l);
+		UpdateFileRequest request = new UpdateFileRequest();
+		request.setId(100l);
 		request.setData(b.toString().getBytes("UTF-8"));
 		//request.setSize(request.getData().length);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
@@ -90,7 +91,8 @@ public class StorageClientTest {
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
 				2010));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
-		ReadFileRequest request = new ReadFileRequest(100l);
+		ReadFileRequest request = new ReadFileRequest();
+		request.setId(100l);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -106,9 +108,10 @@ public class StorageClientTest {
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
 		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+				2210));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
-		RemoveFileRequest request = new RemoveFileRequest(100l);
+		RemoveFileRequest request = new RemoveFileRequest();
+		request.setId(100l);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);

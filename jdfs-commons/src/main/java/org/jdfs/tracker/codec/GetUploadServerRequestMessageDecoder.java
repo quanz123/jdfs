@@ -17,7 +17,9 @@ public class GetUploadServerRequestMessageDecoder extends JdfsFileRequestMessage
 	}
 
 	@Override
-	protected GetUploadServerRequest createRequest(int code) {
-		return new GetUploadServerRequest();
+	protected GetUploadServerRequest createRequest(int batchId, int code) {
+		GetUploadServerRequest r = new GetUploadServerRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 }

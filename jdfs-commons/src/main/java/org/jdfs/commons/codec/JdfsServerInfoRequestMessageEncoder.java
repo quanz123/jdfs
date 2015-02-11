@@ -32,7 +32,7 @@ public class JdfsServerInfoRequestMessageEncoder extends JdfsRequestMessageEncod
 	@Override
 	protected IoBuffer allocateBuffer(IoSession session,
 			JdfsServerInfoRequest message) throws Exception {
-		int l = 12 + (ipv6 ? 16  : 4);
+		int l = 16 + (ipv6 ? 16  : 4);
 		return IoBuffer.allocate(l, false);
 	}
 

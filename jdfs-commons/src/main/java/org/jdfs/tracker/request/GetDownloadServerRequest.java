@@ -14,16 +14,8 @@ public class GetDownloadServerRequest extends JdfsFileRequest {
 	 * 空白构造函数
 	 */
 	public GetDownloadServerRequest() {
-		super(JdfsRequestConstants.REQUEST_DOWNLOAD_SERVER);
+		super();
+		setCode(JdfsRequestConstants.REQUEST_DOWNLOAD_SERVER);
 	}
 	
-	/**
-	 * 指定待下载文件id的构造函数
-	 * 
-	 * @param id
-	 *            文件id
-	 */
-	public GetDownloadServerRequest(long id) {
-		super(JdfsRequestConstants.REQUEST_DOWNLOAD_SERVER, id);
-	}
 }

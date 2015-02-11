@@ -40,12 +40,13 @@ public abstract class JdfsRequestMessageEncoder<T extends JdfsRequest>
 			throws Exception;
 
 	/**
-	 * 供子类重写的回调函数，用于输出请求中除功能代码以外的数据
+	 * 供子类重写的回调函数，用于输出请求中除分组id和功能代码以外的数据
 	 * 
 	 * @param message
 	 *            待输出的请求
 	 * @param buffer
-	 *            用于承接请求数据的{@link IoBuffer}，其中请求的{@link JdfsRequest#getCode()
+	 *            用于承接请求数据的{@link IoBuffer}，其中请求的{@link JdfsRequest#getBatchId()
+	 *            代码}和{@link JdfsRequest#getCode()
 	 *            代码}已写入
 	 * @param session
 	 * @param out

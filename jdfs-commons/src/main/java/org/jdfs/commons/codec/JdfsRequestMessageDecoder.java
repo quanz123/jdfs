@@ -17,15 +17,14 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 		MessageDecoderAdapter {
 	protected String stateObjectSessionKey = null;
 	protected int maxDataSize = 1024 * 1024;
-	
+
 	public int getMaxDataSize() {
 		return maxDataSize;
 	}
-	
+
 	public void setMaxDataSize(int maxDataSize) {
 		this.maxDataSize = maxDataSize;
 	}
-	
 
 	@Override
 	public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
@@ -49,16 +48,17 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 			session.setAttribute(getStateObjectSessionKey(), state);
 		}
 		if (state.getState() == 0) {
-			if (in.remaining() < 4) {
+			if (in.remaining() < 8) {
 				return MessageDecoderResult.NEED_DATA;
 			}
+			int batchId = in.getInt();
 			int code = in.getInt();
-			T request = createRequest(code);
+			T request = createRequest(batchId, code);
 			state.setRequest(request);
 			state.toNextState();
 		}
 		MessageDecoderResult result = decodeRequest(state, session, in);
-		if(result != MessageDecoderResult.OK) {
+		if (result != MessageDecoderResult.OK) {
 			return result;
 		}
 		out.write(state.getRequest());
@@ -72,7 +72,7 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	 * @param code
 	 * @return
 	 */
-	protected boolean support(int code, IoSession session, IoBuffer in)  {
+	protected boolean support(int code, IoSession session, IoBuffer in) {
 		return code == getRequestCode();
 	}
 
@@ -98,16 +98,17 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	}
 
 	/**
-	 * 供子类重写的请求解码回调函数，用于实现对请求代码以外的其他参数的解码
+	 * 供子类重写的请求解码回调函数，用于实现对分组id和请求代码以外的其他参数的解码
 	 * 
-	 * @param state 缓存解码过程的状态对象
+	 * @param state
+	 *            缓存解码过程的状态对象
 	 * @param session
 	 * @param in
 	 * @return
 	 * @throws Exception
 	 */
-	protected MessageDecoderResult decodeRequest(DecoderState<T> state, IoSession session,
-			IoBuffer in)  throws Exception{
+	protected MessageDecoderResult decodeRequest(DecoderState<T> state,
+			IoSession session, IoBuffer in) throws Exception {
 		return MessageDecoderResult.OK;
 	}
 
@@ -121,9 +122,11 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	/**
 	 * 建立空白的请求对象
 	 * 
+	 * @param batchId
+	 *            请求的分组id
 	 * @param code
 	 *            请求的代码
 	 * @return
 	 */
-	protected abstract T createRequest(int code);
+	protected abstract T createRequest(int batchId, int code);
 }

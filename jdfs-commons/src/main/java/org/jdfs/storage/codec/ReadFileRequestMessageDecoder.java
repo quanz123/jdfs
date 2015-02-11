@@ -23,8 +23,10 @@ public class ReadFileRequestMessageDecoder extends
 	}
 
 	@Override
-	protected ReadFileRequest createRequest(int code) {
-		return new ReadFileRequest();
+	protected ReadFileRequest createRequest(int batchId, int code) {
+		ReadFileRequest r = new ReadFileRequest();
+		r.setBatchId(batchId);
+		return r;
 	}
 
 	@Override
