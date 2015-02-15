@@ -8,6 +8,8 @@ import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 import org.jdfs.client.handler.CommandChain;
 import org.jdfs.client.handler.CommandChainBuilder;
+import org.jdfs.client.handler.CommandChainHolder;
+import org.jdfs.commons.request.JdfsRequest;
 
 public class FileIoHandler extends IoHandlerAdapter{
 	public static String COMMAND_CHAIN = "commandChain";
@@ -64,6 +66,11 @@ public class FileIoHandler extends IoHandlerAdapter{
         // Set timeouts
         session.getConfig().setWriteTimeout(writeTimeout);
         session.getConfig().setIdleTime(IdleStatus.READER_IDLE, readTimeout);
+        CommandChainHolder holder = (CommandChainHolder) session.getAttribute(COMMAND_CHAIN);
+        if(holder == null) {
+        	//holder = new CommandChainHolder();
+        	//session.setAttribute(COMMAND_CHAIN, holder);
+        }
     }
 
     /**
@@ -82,15 +89,16 @@ public class FileIoHandler extends IoHandlerAdapter{
      */
     @Override
     public void messageReceived(IoSession session, Object buf) {
-    	CommandChain chain = (CommandChain) session.getAttribute(COMMAND_CHAIN);
-    	if(chain == null) {
-    		chain = commandChainBuilder.buildCommandChain(session, buf);
-    		if(chain != null) {
-    			session.setAttribute(COMMAND_CHAIN, chain);
-    		}
+    	if(!(buf instanceof JdfsRequest)) {
+    		return;
     	}
+    	JdfsRequest request = (JdfsRequest) buf;
+    	int batchId = request.getBatchId();
+    	int code = request.getCode();
+    	CommandChainHolder holder = (CommandChainHolder) session.getAttribute(COMMAND_CHAIN);
+    	CommandChain chain = holder == null ? null : holder.getChain(batchId);
     	if(chain != null) {
-    		chain.doCommand(session, buf);
+    		chain.doCommand(session, buf, chain.getData());
     	}
     }
 
@@ -99,9 +107,9 @@ public class FileIoHandler extends IoHandlerAdapter{
      */
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) {
-    	CommandChain chain = (CommandChain) session.getAttribute(COMMAND_CHAIN);
-    	if(chain != null) {
-    		chain.throwException(session, cause);
+    	CommandChainHolder holder = (CommandChainHolder) session.getAttribute(COMMAND_CHAIN);
+    	if(holder != null) {
+    		//chain.throwException(session, cause);
     	}
 //        final IoSessionInputStream in = (IoSessionInputStream) session.getAttribute(KEY_IN);
 //

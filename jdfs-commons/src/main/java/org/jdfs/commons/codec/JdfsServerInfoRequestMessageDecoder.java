@@ -35,7 +35,7 @@ public class JdfsServerInfoRequestMessageDecoder extends
 	
 	@Override
 	protected int getRequestCode() {
-		return JdfsRequestConstants.REQUEST_STATUS_RESULT;
+		return JdfsRequestConstants.REQUEST_SERVER_INFO;
 	}
 
 	@Override

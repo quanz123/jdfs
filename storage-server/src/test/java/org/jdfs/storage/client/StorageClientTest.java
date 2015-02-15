@@ -29,6 +29,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class StorageClientTest {
 
 	private ProtocolCodecFactory codecFactory;
+	private String host = "localhost";
+	private int port = 2210;
 
 	public ProtocolCodecFactory getCodecFactory() {
 		return codecFactory;
@@ -37,6 +39,22 @@ public class StorageClientTest {
 	@Autowired
 	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	@Before
@@ -53,8 +71,7 @@ public class StorageClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2210));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		StringBuilder b = new StringBuilder();
 		b.append("测试test信息123:").append(new Date()).append('\n');
@@ -70,7 +87,7 @@ public class StorageClientTest {
 		UpdateFileRequest request = new UpdateFileRequest();
 		request.setId(100l);
 		request.setData(b.toString().getBytes("UTF-8"));
-		//request.setSize(request.getData().length);
+		// request.setSize(request.getData().length);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -88,11 +105,11 @@ public class StorageClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2010));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		ReadFileRequest request = new ReadFileRequest();
 		request.setId(100l);
+		request.setBatchId(33);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
@@ -107,8 +124,7 @@ public class StorageClientTest {
 				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
 		UpdateFileIoHandler handler = new UpdateFileIoHandler();
 		connector.setHandler(handler);// 设置事件处理器
-		ConnectFuture cf = connector.connect(new InetSocketAddress("127.0.0.1",
-				2210));// 建立连接
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		RemoveFileRequest request = new RemoveFileRequest();
 		request.setId(100l);
@@ -154,6 +170,7 @@ public class StorageClientTest {
 			if (message instanceof JdfsDataResponse) {
 				String msg = new String(((JdfsDataResponse) message).getData(),
 						"UTF-8");
+				System.out.println("batchId: " + ((JdfsDataResponse) message).getBatchId());
 				System.out.println("recv data: "
 						+ StringUtils.abbreviate(msg, 100));
 			} else {

@@ -28,11 +28,12 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 
 	@Override
 	public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
-		if (in.remaining() < 4) {
+		if (in.remaining() < 8) {
 			return MessageDecoderResult.NEED_DATA;
 		} else {
+			int batchId = in.getInt();
 			int code = in.getInt();
-			return support(code, session, in) ? MessageDecoderResult.OK
+			return support(batchId, code, session, in) ? MessageDecoderResult.OK
 					: MessageDecoderResult.NOT_OK;
 		}
 	}
@@ -69,10 +70,11 @@ public abstract class JdfsRequestMessageDecoder<T extends JdfsRequest> extends
 	/**
 	 * 返回是否支持对指定的功能代码进行处理
 	 * 
+	 * @param batchId
 	 * @param code
 	 * @return
 	 */
-	protected boolean support(int code, IoSession session, IoBuffer in) {
+	protected boolean support(int batchId, int code, IoSession session, IoBuffer in) {
 		return code == getRequestCode();
 	}
 

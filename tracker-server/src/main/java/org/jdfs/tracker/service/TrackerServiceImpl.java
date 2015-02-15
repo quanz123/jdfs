@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
+import org.apache.commons.lang3.StringUtils;
 import org.jdfs.commons.service.AbstractJdfsServer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
@@ -94,6 +95,9 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 			return null;
 		}
 		String group = file.getGroup();
+		if(StringUtils.isEmpty(group)) {
+			return null;
+		}
 		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
 				.get(group);
 		String[] names = nodes.keySet().toArray(new String[nodes.size()]);
@@ -116,7 +120,7 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		} else {
 			group = file.getGroup();
 		}
-		if (group == null) {
+		if (StringUtils.isEmpty(group)) {
 			return null;
 		}
 		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
@@ -204,8 +208,9 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 			clearServerList(group);
 		}
 		String path = getBase() + "/storages/" + group;
+		String prefix = path + '/';
 		for (String node : zk.getChildren(path)) {
-			Map<String, String> info = getServerInfo(path);
+			Map<String, String> info = getServerInfo(prefix + node);
 			if (info != null) {
 				nodes.put(node, info);
 				String address = info.get("address");

@@ -22,6 +22,7 @@ public abstract class JdfsRequestMessageEncoder<T extends JdfsRequest>
 	public void encode(IoSession session, T message, ProtocolEncoderOutput out)
 			throws Exception {
 		IoBuffer buffer = allocateBuffer(session, message);
+		buffer.putInt(message.getBatchId());
 		buffer.putInt(message.getCode());
 		encodeMessageData(message, buffer, session, out);
 		buffer.flip();

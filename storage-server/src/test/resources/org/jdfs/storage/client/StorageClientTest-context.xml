@@ -6,6 +6,19 @@
   <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
+        <entry key="org.jdfs.commons.request.JdfsDataResponse">
+          <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.commons.request.JdfsServerInfoRequest">
+          <bean class="org.jdfs.commons.codec.JdfsServerInfoRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.commons.request.JdfsStatusResponse">
+          <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageEncoder" />
+        </entry>        
+        
+        <entry key="org.jdfs.storage.request.GetCheckSumRequest">
+          <bean class="org.jdfs.storage.codec.GetCheckSumRequestMessageEncoder" />
+        </entry>
         <entry key="org.jdfs.storage.request.ReadFileRequest">
           <bean class="org.jdfs.storage.codec.ReadFileRequestMessageEncoder" />
         </entry>
@@ -15,21 +28,44 @@
         <entry key="org.jdfs.storage.request.UpdateFileRequest">
           <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.commons.request.JdfsStatusResponse">
-          <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageEncoder" />
+        
+        <entry key="org.jdfs.tracker.request.FileInfoResponse">
+          <bean class="org.jdfs.tracker.codec.FileInfoResponseMessageEncoder" />
+        </entry>        
+        <entry key="org.jdfs.tracker.request.GetDownloadServerRequest">
+          <bean class="org.jdfs.tracker.codec.GetDownloadServerRequestMessageEncoder" />
+        </entry>        
+        <entry key="org.jdfs.tracker.request.GetUploadServerRequest">
+          <bean class="org.jdfs.tracker.codec.GetUploadServerRequestMessageEncoder" />
         </entry>
-        <entry key="org.jdfs.commons.request.JdfsDataResponse">
-          <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageEncoder" />
+        <entry key="org.jdfs.tracker.request.ReadFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.ReadFileRequestMessageEncoder" />
         </entry>
+        <entry key="org.jdfs.tracker.request.RemoveFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.RemoveFileRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.tracker.request.UpdateFileInfoRequest">
+          <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageEncoder" />
+        </entry>        
       </map>
     </property>
     <property name="decoders">
       <array value-type="org.apache.mina.filter.codec.demux.MessageDecoder">
+        <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsServerInfoRequestMessageDecoder" />
+        <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageDecoder" />
+        
+        <bean class="org.jdfs.storage.codec.GetCheckSumRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.ReadFileRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.RemoveFileRequestMessageDecoder" />
         <bean class="org.jdfs.storage.codec.UpdateFileRequestMessageDecoder" />
-        <bean class="org.jdfs.commons.codec.JdfsStatusResponseMessageDecoder" />
-        <bean class="org.jdfs.commons.codec.JdfsDataResponseMessageDecoder" />
+        
+        <bean class="org.jdfs.tracker.codec.FileInfoResponseMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.GetDownloadServerRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.GetUploadServerRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.ReadFileRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.RemoveFileRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageDecoder" />
       </array>
     </property>
   </bean>

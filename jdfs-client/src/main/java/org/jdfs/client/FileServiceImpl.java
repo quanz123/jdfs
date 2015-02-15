@@ -2,21 +2,22 @@ package org.jdfs.client;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.mina.core.future.ConnectFuture;
-import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoHandler;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
-import org.jdfs.storage.request.UpdateFileRequest;
+import org.jdfs.client.handler.CommandChainHolder;
+import org.jdfs.client.handler.CommandChainImpl;
 import org.jdfs.tracker.request.GetUploadServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,13 @@ public class FileServiceImpl implements FileService, InitializingBean,
 	private InetSocketAddress[] trackers = new InetSocketAddress[] { new InetSocketAddress(
 			"localhost", 2200) };
 	private ProtocolCodecFactory codecFactory;
-	private NioSocketConnector connector;
-	private IoHandler handler;
+	private SocketConnector trackerConnector;
+	private SocketConnector storageConnector;
+	private IoHandler trackerHandler;
+	private IoHandler storageHandler;
 	
-	private boolean needDestroy=false;
+	private boolean needDestroyTrackerConnector=false;
+	private boolean needDestroyStorageConnector=false;
 	private int currentTracker = 0;
 
 	public int getChunkSize() {
@@ -90,20 +94,36 @@ public class FileServiceImpl implements FileService, InitializingBean,
 		this.codecFactory = codecFactory;
 	}
 
-	public NioSocketConnector getConnector() {
-		return connector;
+	public SocketConnector getTrackerConnector() {
+		return trackerConnector;
 	}
 	
-	public void setConnector(NioSocketConnector connector) {
-		this.connector = connector;
+	public void setTrackerConnector(SocketConnector connector) {
+		this.trackerConnector = connector;
 	}
 	
-	public IoHandler getHandler() {
-		return handler;
+	public SocketConnector getStorageConnector() {
+		return storageConnector;
 	}
 	
-	public void setHandler(IoHandler handler) {
-		this.handler = handler;
+	public void setStorageConnector(SocketConnector storageConnector) {
+		this.storageConnector = storageConnector;
+	}
+	
+	public IoHandler getTrackerHandler() {
+		return trackerHandler;
+	}
+	
+	public void setTrackerHandler(IoHandler handler) {
+		this.trackerHandler = handler;
+	}
+	
+	public IoHandler getStorageHandler() {
+		return storageHandler;
+	}
+	
+	public void setStorageHandler(IoHandler storageHandler) {
+		this.storageHandler = storageHandler;
 	}
 	
 	@Override
@@ -111,22 +131,34 @@ public class FileServiceImpl implements FileService, InitializingBean,
 		if (trackers == null || trackers.length == 0) {
 			throw new IllegalArgumentException("trackers is required!");
 		}
-		if(connector != null) {
-			Assert.notNull(handler, "handler is required!");
+		if(trackerConnector == null) {
+			Assert.notNull(trackerHandler, "trackerHandler is required!");
 			// 创建客户端连接器.
-			needDestroy = true;
-			connector = new NioSocketConnector();
-			connector.getFilterChain().addLast("logger", new LoggingFilter());
-			connector.getFilterChain().addLast("codec",
+			needDestroyTrackerConnector = true;
+			trackerConnector = new NioSocketConnector();
+			trackerConnector.getFilterChain().addLast("logger", new LoggingFilter());
+			trackerConnector.getFilterChain().addLast("codec",
 					new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
-			connector.setHandler(handler);// 设置事件处理器
+			trackerConnector.setHandler(trackerHandler);// 设置事件处理器
+		}		if(storageConnector == null) {
+			Assert.notNull(storageHandler, "storageHandler is required!");
+			// 创建客户端连接器.
+			needDestroyStorageConnector = true;
+			storageConnector = new NioSocketConnector();
+			storageConnector.getFilterChain().addLast("logger", new LoggingFilter());
+			storageConnector.getFilterChain().addLast("codec",
+					new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
+			storageConnector.setHandler(storageHandler);// 设置事件处理器
 		}
 	}
 
 	@Override
 	public void destroy() throws Exception {
-		if(needDestroy) {
-			connector.dispose();
+		if(needDestroyTrackerConnector) {
+			trackerConnector.dispose();
+		}
+		if(needDestroyStorageConnector) {
+			storageConnector.dispose();
 		}
 	}
 
@@ -134,19 +166,39 @@ public class FileServiceImpl implements FileService, InitializingBean,
 	public FileInfo updateFile(long id, String name, InputStream data,
 			long offset, long size) throws IOException{
 		InetSocketAddress tracker = getTrackerAddress();
-		ConnectFuture cf = connector.connect(tracker);
+		ConnectFuture cf = trackerConnector.connect(tracker);
 		if(!cf.awaitUninterruptibly(connectTimeout)){
 			logger.error("connect tracker {} error!", tracker);
 			throw new IOException("connect tracker " + tracker + " error!");
 		}
 		IoSession session = cf.getSession();
+		CommandChainHolder holder = (CommandChainHolder) session.getAttribute(FileIoHandler.COMMAND_CHAIN);
+		if(holder == null) {
+			holder = new CommandChainHolder();
+			session.setAttribute(FileIoHandler.COMMAND_CHAIN, holder);
+		}
+		CommandChainImpl chain = new CommandChainImpl();
+		holder.addChain(chain);
+		chain.addCommand(new GetUploadServerCommand());
+		UploadFileCommand ufc = new UploadFileCommand();
+		ufc.setStorageConnector(storageConnector);
+		chain.addCommand(ufc);
+		
+		Map<String, Object> ctx = new HashMap<String, Object>();
+		ctx.put("id", id);
+		ctx.put("name", name);
+		ctx.put("data", data);
+		ctx.put("offset", offset);
+		ctx.put("size", size);
+		
 		GetUploadServerRequest request = new GetUploadServerRequest();
-		request.setId(id);
-		WriteFuture wf = session.write(request);
-		
-		
-		int c= (int) Math.ceil(size / chunkSize);
-		// TODO Auto-generated method stub
+		request.setId(id);		
+		chain.doCommand(session, request, ctx);
+		try {
+			chain.getFuture().await();
+		} catch (InterruptedException e) {
+			throw new IOException("error on updateFile", e);
+		}
 		return null;
 	}
 

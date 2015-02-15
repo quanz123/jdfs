@@ -8,15 +8,19 @@ public class CommandChainHolder {
 	private AtomicInteger batchIds = new AtomicInteger(1);
 	private ConcurrentMap<Integer, CommandChain> chains = new ConcurrentHashMap<Integer, CommandChain>();
 
+	public int nextBatchId() {
+		return batchIds.getAndIncrement();
+	}
+	
 	public CommandChain getChain(int batchId) {
 		return chains == null ? null : chains.get(batchId);
 	}
 
-	public int addChain(CommandChain chain) {
+	public ChainFuture addChain(CommandChain chain) {
 		int batchId = batchIds.getAndIncrement();
 		chain.setId(batchId);
 		chains.put(batchId, chain);
-		return batchId;
+		return chain.getFuture();
 	}
 
 	public void removeCommandChain(CommandChain chain) {

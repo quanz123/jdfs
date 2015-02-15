@@ -2,59 +2,14 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-  <bean id="propertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-    <property name="locations" value="conf/*.properties" />
+  
+  <bean id="fileService" class="org.jdfs.client.FileServiceImpl">
+    <property name="codecFactory" ref="codecFactory"/>
+    <property name="trackerHandler" ref="fileIoHandler"/>
+    <property name="storageHandler" ref="fileIoHandler"/>
   </bean>
-
-  <bean id="trackerService" class="org.jdfs.tracker.service.TrackerServiceImpl">
-    <property name="serviceAddress" value="${org.jdfs.tracker.service}" />
-    <property name="zk" ref="zkServer" />
-    <property name="fileInfoService" ref="fileInfoService" />
-  </bean>
-
-  <bean id="zkServer" class="org.jdfs.commons.service.ZkClientFactoryBean">
-    <property name="zkServer" value="${org.jdfs.zk}" />
-  </bean>
-
-  <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
-    <property name="customEditors">
-      <map>
-        <entry key="java.net.SocketAddress" value="org.apache.mina.integration.beans.InetSocketAddressEditor" />
-      </map>
-    </property>
-  </bean>
-
-  <bean id="ioAcceptor" class="org.apache.mina.transport.socket.nio.NioSocketAcceptor" init-method="bind" destroy-method="unbind">
-    <property name="defaultLocalAddress" value="${org.jdfs.tracker.service}" />
-    <property name="handler" ref="trackerServerHandler" />
-    <property name="filterChainBuilder" ref="filterChainBuilder" />
-    <property name="reuseAddress" value="true" />
-  </bean>
-
-  <bean id="filterChainBuilder" class="org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder">
-    <property name="filters">
-      <map>
-        <entry key="executor" value-ref="executorFilter" />
-        <entry key="mdcInjectionFilter" value-ref="mdcInjectionFilter" />
-        <entry key="codecFilter" value-ref="codecFilter" />
-        <entry key="loggingFilter" value-ref="loggingFilter" />
-      </map>
-    </property>
-  </bean>
-
-  <bean id="executorFilter" class="org.apache.mina.filter.executor.ExecutorFilter" />
-
-  <bean id="mdcInjectionFilter" class="org.apache.mina.filter.logging.MdcInjectionFilter">
-    <constructor-arg value="remoteAddress" />
-  </bean>
-
-  <bean id="codecFilter" class="org.apache.mina.filter.codec.ProtocolCodecFilter">
-    <constructor-arg ref="codecFactory" />
-  </bean>
-
-  <bean id="loggingFilter" class="org.apache.mina.filter.logging.LoggingFilter" />
-
+  
+ 
   <bean id="codecFactory" class="org.jdfs.commons.codec.DemuxingProtocolCodecFactoryFactoryBean">
     <property name="encoders">
       <map key-type="java.lang.Class" value-type="org.apache.mina.filter.codec.demux.MessageEncoder">
@@ -121,40 +76,8 @@
       </array>
     </property>
   </bean>
+ 
   
-  <bean id="trackerServerHandler" class="org.jdfs.commons.handler.DemuxingIoHandlerFactoryBean">
-    <property name="receivedMessageHandlers">
-      <map key-type="java.lang.Class" value-type="org.apache.mina.handler.demux.MessageHandler">
-        <entry key="org.jdfs.tracker.request.GetDownloadServerRequest">
-          <bean class="org.jdfs.tracker.handler.GetDownloadServerMessageHandler">
-            <property name="trackerService" ref="trackerService" />
-          </bean>
-        </entry>
-        <entry key="org.jdfs.tracker.request.GetUploadServerRequest">
-          <bean class="org.jdfs.tracker.handler.GetUploadServerMessageHandler">
-            <property name="trackerService" ref="trackerService" />
-          </bean>
-        </entry>
-        <entry key="org.jdfs.tracker.request.ReadFileInfoRequest">
-          <bean class="org.jdfs.tracker.handler.ReadFileInfoMessageHandler">
-            <property name="fileInfoService" ref="fileInfoService" />
-          </bean>
-        </entry>
-        <entry key="org.jdfs.tracker.request.RemoveFileInfoRequest">
-          <bean class="org.jdfs.tracker.handler.RemoveFileInfoMessageHandler">
-            <property name="fileInfoService" ref="fileInfoService" />
-          </bean>
-        </entry>
-        <entry key="org.jdfs.tracker.request.UpdateFileInfoRequest">
-          <bean class="org.jdfs.tracker.handler.UpdateFileInfoMessageHandler">
-            <property name="fileInfoService" ref="fileInfoService" />
-          </bean>
-        </entry>
-      </map>
-    </property>
+  <bean id="fileIoHandler" class="org.jdfs.client.FileIoHandler">
   </bean>
-
-  <bean id="fileInfoService" class="org.jdfs.tracker.service.FileInfoServiceImpl">
-  </bean>
-
 </beans>        

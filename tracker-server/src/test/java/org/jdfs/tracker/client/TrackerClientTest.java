@@ -1,6 +1,8 @@
 package org.jdfs.tracker.client;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -9,8 +11,13 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
+import org.jdfs.commons.request.JdfsRequestConstants;
+import org.jdfs.commons.request.JdfsServerInfoRequest;
 import org.jdfs.commons.request.JdfsStatusResponse;
+import org.jdfs.storage.request.ReadFileRequest;
 import org.jdfs.tracker.request.FileInfoResponse;
+import org.jdfs.tracker.request.GetDownloadServerRequest;
+import org.jdfs.tracker.request.GetUploadServerRequest;
 import org.jdfs.tracker.request.ReadFileInfoRequest;
 import org.jdfs.tracker.request.RemoveFileInfoRequest;
 import org.jdfs.tracker.request.UpdateFileInfoRequest;
@@ -60,7 +67,6 @@ public class TrackerClientTest {
 
 	}
 
-	@Test
 	public void testUpdate() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -86,7 +92,6 @@ public class TrackerClientTest {
 		connector.dispose();
 	}
 
-	@Test
 	public void testRead() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -99,12 +104,12 @@ public class TrackerClientTest {
 		cf.awaitUninterruptibly();// 等待连接创建完成
 		ReadFileInfoRequest request = new ReadFileInfoRequest();
 		request.setId(100l);
+		request.setBatchId(10);
 		WriteFuture wf = cf.getSession().write(request);// 发送消息
 		wf.await();
 		Thread.sleep(2000);
 	}
 
-	@Test
 	public void testRemove() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -123,6 +128,61 @@ public class TrackerClientTest {
 		cf.getSession().close(true);
 		cf.getSession().getCloseFuture().awaitUninterruptibly();// 等待连接断开
 		connector.dispose();
+	}
+
+	public void testGetDownloadServer() throws Exception {
+		// 创建客户端连接器.
+		NioSocketConnector connector = new NioSocketConnector();
+		connector.getFilterChain().addLast("logger", new LoggingFilter());
+		connector.getFilterChain().addLast("codec",
+				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
+		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
+		connector.setHandler(handler);// 设置事件处理器
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
+		cf.awaitUninterruptibly();// 等待连接创建完成
+		GetDownloadServerRequest request = new GetDownloadServerRequest();
+		request.setId(100l);
+		request.setBatchId(10);
+		WriteFuture wf = cf.getSession().write(request);// 发送消息
+		wf.await();
+		Thread.sleep(2000);
+	}
+
+	@Test
+	public void testGetUploadServer() throws Exception {
+		// 创建客户端连接器.
+		NioSocketConnector connector = new NioSocketConnector();
+		connector.getFilterChain().addLast("logger", new LoggingFilter());
+		connector.getFilterChain().addLast("codec",
+				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
+		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
+		connector.setHandler(handler);// 设置事件处理器
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
+		cf.awaitUninterruptibly();// 等待连接创建完成
+		GetUploadServerRequest request = new GetUploadServerRequest();
+		request.setId(200l);
+		request.setBatchId(10);
+		WriteFuture wf = cf.getSession().write(request);// 发送消息
+		wf.await();
+		Thread.sleep(2000);
+	}
+
+	@Test
+	public void testMultiServer() throws Exception {
+		NioSocketConnector connector = new NioSocketConnector();
+		connector.getFilterChain().addLast("logger", new LoggingFilter());
+		connector.getFilterChain().addLast("codec",
+				new ProtocolCodecFilter(codecFactory)); // 设置编码过滤器
+		ReadFileIoHandler handler = new ReadFileIoHandler(connector);
+		connector.setHandler(handler);// 设置事件处理器
+		ConnectFuture cf = connector.connect(new InetSocketAddress(host, port));// 建立连接
+		cf.awaitUninterruptibly();// 等待连接创建完成
+		GetUploadServerRequest request = new GetUploadServerRequest();
+		request.setId(200l);
+		request.setBatchId(10);
+		WriteFuture wf = cf.getSession().write(request);// 发送消息
+		wf.await();
+		Thread.sleep(2000);
 	}
 
 	protected class UpdateFileIoHandler extends IoHandlerAdapter {
@@ -159,6 +219,7 @@ public class TrackerClientTest {
 			if (message instanceof FileInfoResponse) {
 				FileInfoResponse resp = (FileInfoResponse) message;
 				System.out.println("recv file info: ");
+				System.out.println("batchId: " + resp.getBatchId());
 				System.out.println("status: " + resp.getStatus());
 				System.out.println("id: " + resp.getId());
 				System.out.println("name: " + resp.getName());
@@ -166,6 +227,12 @@ public class TrackerClientTest {
 				System.out.println("lastModified: "
 						+ new DateTime(resp.getLastModified())
 								.toString("yyyy-M-d H:mm:ss"));
+			} else if (message instanceof JdfsStatusResponse) {
+				JdfsStatusResponse resp = (JdfsStatusResponse) message;
+				System.out.println("recv status:");
+				System.out.println("batchId: " + resp.getBatchId());
+				System.out.println("status: " + resp.getStatus());
+				System.out.println("message: " + resp.getMessage());
 			} else {
 				System.out.println("recv: " + message);
 			}
