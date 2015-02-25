@@ -14,11 +14,11 @@
   <packaging>pom</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jackson.version>2.5.0</jackson.version>
+    <jackson.version>2.5.1</jackson.version>
     <log4j.version>2.1</log4j.version>
     <mina.version>2.0.9</mina.version>
     <slf4j.version>1.7.7</slf4j.version>
-    <spring.version>4.1.4.RELEASE</spring.version>
+    <spring.version>4.1.5.RELEASE</spring.version>
   </properties>
 
   <dependencyManagement>
@@ -46,7 +46,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.9</version>
+        <version>1.10</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -91,7 +91,7 @@
       <dependency>
         <groupId>org.mapdb</groupId>
         <artifactId>mapdb</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.7</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -119,11 +119,6 @@
         <version>${spring.version}</version>
       </dependency>
 
-      <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>1.1.2</version>
-      </dependency>
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>

@@ -66,7 +66,8 @@ public class StoreServiceImpl implements StoreService, InitializingBean {
 	public void storeFile(long id, long position, byte[] data)
 			throws IOException {
 		String path = getPath(id);
-		logger.debug("storeFile({}, {}, ..) -> {}", id, position, path);
+		logger.debug("storeFile({}, {}, {} bytes) -> {}", id, position,
+				data.length, path);
 		File file = new File(rootDir, path);
 		RandomAccessFile raf = new RandomAccessFile(file, "rw");
 		try {

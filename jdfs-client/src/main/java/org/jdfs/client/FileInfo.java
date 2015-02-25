@@ -27,7 +27,7 @@ public class FileInfo implements Serializable {
 		size = file.getSize();
 		lastModified = file.getLastModified();
 	}
-	
+
 	public long getId() {
 		return id;
 	}
@@ -58,5 +58,11 @@ public class FileInfo implements Serializable {
 
 	public void setLastModified(DateTime lastModified) {
 		this.lastModified = lastModified;
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append(getName()).append("[").append(id)
+				.append(']').toString();
 	}
 }

@@ -78,6 +78,6 @@
   </bean>
  
   
-  <bean id="fileIoHandler" class="org.jdfs.client.FileIoHandler">
+  <bean id="fileIoHandler" class="org.jdfs.client.handler.ServerActionIoHandler">
   </bean>
 </beans>        
