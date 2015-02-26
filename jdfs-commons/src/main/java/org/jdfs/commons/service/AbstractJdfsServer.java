@@ -1,6 +1,5 @@
 package org.jdfs.commons.service;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,6 +8,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -134,20 +134,12 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 */
 	protected byte[] getServerData() throws Exception{
 		Map<String, String> props = new LinkedHashMap<String, String>();
-		props.put("address", toString(serviceAddress));
+		props.put("address", InetSocketAddressHelper.toString(serviceAddress));
 		prepareServerData(props);
 		byte[] data = objectMapper.writeValueAsBytes(props);
 		return data;
 	}
-	
-	protected String toString(InetSocketAddress addr) {
-		if(addr.isUnresolved()){
-			return addr.getHostString() + ':' + addr.getPort();			
-		} else {
-			InetAddress ia = addr.getAddress();
-			return ia.getHostAddress()+ ':' + addr.getPort();			
-		}
-	}
+
 	
 	/**
 	 * 建立服务器状态节点前执行的回调函数，供子类重写后加入其他节点数据

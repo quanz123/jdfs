@@ -37,12 +37,18 @@ public class UpdateFileInfoMessageHandler implements
 	@Override
 	public void handleMessage(IoSession session, UpdateFileInfoRequest message)
 			throws Exception {
+		long id = message.getId();
+		String name = message.getName();
+		int group = message.getGroup();
+		long size = message.getSize();
+		DateTime lastModified = new DateTime(message.getLastModified());
 		FileInfo file = new FileInfo();
 		file.setId(message.getId());
 		file.setName(message.getName());
 		file.setSize(message.getSize());
 		file.setLastModified(new DateTime(message.getLastModified()));
-		fileInfoService.updateFileInfo(file);
+		fileInfoService.updateFileName(id, name);
+		fileInfoService.updateFileDataInfo(id, group, size, lastModified);
 		JdfsStatusResponse resp = new JdfsStatusResponse();
 		resp.setBatchId(message.getBatchId());
 		resp.setStatus(JdfsRequestConstants.STATUS_OK);

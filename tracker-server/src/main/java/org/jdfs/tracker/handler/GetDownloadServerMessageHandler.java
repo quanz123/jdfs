@@ -5,7 +5,9 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
+import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.jdfs.tracker.request.GetDownloadServerRequest;
+import org.jdfs.tracker.service.ServerInfo;
 import org.jdfs.tracker.service.TrackerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -37,8 +39,8 @@ public class GetDownloadServerMessageHandler implements
 	public void handleMessage(IoSession session,
 			GetDownloadServerRequest message) throws Exception {
 		long id = message.getId();
-		String address = trackerService.getDownloadServerAddress(id);
-		if (StringUtils.isEmpty(address)) {
+		ServerInfo server = trackerService.getDownloadServerForFile(id);
+		if (server == null) {
 			JdfsStatusResponse resp = new JdfsStatusResponse();
 			resp.setBatchId(message.getBatchId());
 			resp.setStatus(JdfsRequestConstants.STATUS_STORAGE_NOT_FOUND);
@@ -47,7 +49,7 @@ public class GetDownloadServerMessageHandler implements
 			JdfsStatusResponse resp = new JdfsStatusResponse();
 			resp.setBatchId(message.getBatchId());
 			resp.setStatus(JdfsRequestConstants.STATUS_OK);
-			resp.setMessage(address);
+			resp.setMessage(server.toString());
 			session.write(resp);
 			return;
 		}

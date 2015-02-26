@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.joda.time.DateTime;
 import org.mapdb.BTreeMap;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -73,11 +74,26 @@ public class FileInfoServiceImpl implements FileInfoService, InitializingBean,
 	}
 
 	@Override
-	public void updateFileInfo(FileInfo file) throws IOException {
-		long id = file.getId();
+	public void updateFileName(long id, String name) throws IOException {
+		FileInfo file =getOrCreateFileInfo(id);
+		//TODO 如何处理并发修改 
+		file.setName(name);
 		infos.put(id, file);
 		infoDb.commit();
 		compactDb();
+	}
+	
+	@Override
+	public void updateFileDataInfo(long id, int group, long size,
+			DateTime lastModified) {
+		FileInfo file =getOrCreateFileInfo(id);
+		//TODO 如何处理并发修改 
+		file.setGroup(group);xxx group值如何处理
+		file.setSize(size);
+		file.setLastModified(lastModified);
+		infos.put(id, file);
+		infoDb.commit();
+		compactDb();		
 	}
 
 	@Override
@@ -87,6 +103,19 @@ public class FileInfoServiceImpl implements FileInfoService, InitializingBean,
 		compactDb();
 	}
 
+	protected FileInfo getOrCreateFileInfo(long id) {
+		FileInfo file = infos.get(id);
+		if(file == null) {
+			FileInfo newFile = new FileInfo();
+			newFile.setId(id);
+			file = infos.putIfAbsent(id, newFile);
+			if(file == null) {
+				file = newFile;
+			}
+		}
+		return file;
+	}
+	
 	protected void compactDb() {
 		int n = compactCounter.decrementAndGet();
 		if (n <= 0) {

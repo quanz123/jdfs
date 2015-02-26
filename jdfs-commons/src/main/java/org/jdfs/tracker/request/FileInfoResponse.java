@@ -9,7 +9,7 @@ import org.jdfs.commons.request.JdfsRequestConstants;
  * @version 2015年2月4日 下午6:15:19
  */
 public class FileInfoResponse extends JdfsRequest {
-	private int status = JdfsRequestConstants.STATUS_OK;;
+	private int status = JdfsRequestConstants.STATUS_OK;
 	private long id;
 	private long size;
 	private long lastModified;

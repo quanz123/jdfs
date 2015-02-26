@@ -12,10 +12,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.apache.commons.lang3.StringUtils;
 import org.jdfs.commons.service.AbstractJdfsServer;
+import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 
@@ -26,12 +28,13 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		TrackerService, DisposableBean {
 	private String base = "/jdfs";
 
-	private ConcurrentMap<String, ConcurrentMap<String, Map<String, String>>> serverInfos = new ConcurrentHashMap<String, ConcurrentMap<String, Map<String, String>>>();
-	private ConcurrentMap<String, String[]> serverAddrs = new ConcurrentHashMap<String, String[]>();
-	private Map<String, IZkChildListener> nodeListeners = new LinkedHashMap<String, IZkChildListener>();
+	private ConcurrentMap<Integer, ConcurrentMap<String, ServerInfo>> serverInfos = new ConcurrentHashMap<Integer, ConcurrentMap<String, ServerInfo>>();
+	private ConcurrentMap<String, ServerInfo> serverAddrs = new ConcurrentHashMap<String, ServerInfo>();
+	private Map<Integer, IZkChildListener> nodeListeners = new LinkedHashMap<Integer, IZkChildListener>();
 	private IZkChildListener groupListener = null;
 
 	private FileInfoService fileInfoService;
+	private ObjectMapper objectMapper;
 
 	/**
 	 * 返回服务器注册信息节点的根路径，缺省为{@code /jdfs}
@@ -70,8 +73,20 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	}
 
 	@Override
+	public ObjectMapper getObjectMapper() {
+		// TODO Auto-generated method stub
+		return super.getObjectMapper();
+	}
+
+	@Override
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		// TODO Auto-generated method stub
+		super.setObjectMapper(objectMapper);
+	}
+
+	@Override
 	public void destroy() throws Exception {
-		for (String group : serverInfos.keySet()) {
+		for (int group : serverInfos.keySet()) {
 			clearServerList(group);
 		}
 		String basePath = getBase() + "/storages";
@@ -81,6 +96,9 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	@Override
 	protected void initJdfsServer() throws Exception {
 		Assert.notNull(fileInfoService, "fileInfoService is required!");
+		if (objectMapper == null) {
+			objectMapper = new ObjectMapper();
+		}
 		String basePath = getBase() + "/storages";
 		mkdirs(basePath);
 		groupListener = new GroupWatcher();
@@ -89,47 +107,41 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	}
 
 	@Override
-	public String getDownloadServerAddress(long id) throws IOException {
+	public ServerInfo getDownloadServerForFile(long id) throws IOException {
 		FileInfo file = fileInfoService.getFileInfo(id);
 		if (file == null) {
 			return null;
 		}
-		String group = file.getGroup();
-		if(StringUtils.isEmpty(group)) {
+		int group = file.getGroup();
+		if (group == 0) {
 			return null;
 		}
-		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
-				.get(group);
+		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(group);
 		String[] names = nodes.keySet().toArray(new String[nodes.size()]);
 		Arrays.sort(names, Collections.reverseOrder());
-		Map<String, String> props = names.length > 0 ? nodes.get(names[0])
-				: null;
-		return props == null ? null : props.get("address");
+		return names.length > 0 ? nodes.get(names[0]) : null;
 	}
 
 	@Override
-	public String getUploadServerAddress(long id) throws IOException {
-		String group = null;
+	public ServerInfo getUploadServerForFile(long id) throws IOException {
+		int group = 0;
 		FileInfo file = fileInfoService.getFileInfo(id);
 		if (file == null) {
 			String[] groups = serverInfos.keySet().toArray(
 					new String[serverInfos.size()]);
 			if (groups.length > 0) {
-				group = groups[0];
+				group = Integer.parseInt(groups[0]);
 			}
 		} else {
 			group = file.getGroup();
 		}
-		if (StringUtils.isEmpty(group)) {
+		if (group == 0) {
 			return null;
 		}
-		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
-				.get(group);
+		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(group);
 		String[] names = nodes.keySet().toArray(new String[nodes.size()]);
 		Arrays.sort(names);
-		Map<String, String> props = names.length > 0 ? nodes.get(names[0])
-				: null;
-		return props == null ? null : props.get("address");
+		return names.length > 0 ? nodes.get(names[0]) : null;
 	}
 
 	/**
@@ -163,46 +175,44 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	 * @throws Exception
 	 */
 	protected void reloadAllServerList() throws Exception {
-		for (String group : serverInfos.keySet()) {
+		for (int group : serverInfos.keySet()) {
 			clearServerList(group);
 		}
 		String basePath = getBase() + "/storages";
 		for (String group : zk.getChildren(basePath)) {
-			reloadServerList(group);
+			reloadServerList(Integer.parseInt(group));
 		}
 	}
 
-	protected void clearServerList(String group) {
-		IZkChildListener listener = nodeListeners.get(group);
+	protected void clearServerList(int group) {
+		String groupName = Integer.toString(group);
+		IZkChildListener listener = nodeListeners.get(groupName);
 		if (listener != null) {
-			String path = getBase() + "/storages/" + group;
+			String path = getBase() + "/storages/" + groupName;
 			zk.unsubscribeChildChanges(path, listener);
 		}
-		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
-				.get(group);
+		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(groupName);
 		if (nodes != null) {
-			for (Map.Entry<String, Map<String, String>> entry : nodes
-					.entrySet()) {
+			for (Map.Entry<String, ServerInfo> entry : nodes.entrySet()) {
 				String node = entry.getKey();
-				Map<String, String> info = entry.getValue();
-				String address = info.get("address");
-				String[] infos = serverAddrs.get(address);
-				if (infos != null && group.equals(infos[0])
-						&& node.equals(infos[1])) {
+				ServerInfo info = entry.getValue();
+				String address = InetSocketAddressHelper.toString(info
+						.getServiceAddress());
+				ServerInfo info2 = serverAddrs.get(address);
+				if (info.equals(info2)) {
 					serverAddrs.remove(address);
-					logger.debug("unregister server: {}/{} - {}", group, node,
-							address);
+					logger.debug("unregister server: {}/{} - {}", groupName,
+							node, address);
 				}
 			}
 			nodes.clear();
 		}
 	}
 
-	protected void reloadServerList(String group) throws IOException {
-		ConcurrentMap<String, Map<String, String>> nodes = serverInfos
-				.get(group);
+	protected void reloadServerList(int group) throws IOException {
+		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(group);
 		if (nodes == null) {
-			nodes = new ConcurrentHashMap<String, Map<String, String>>();
+			nodes = new ConcurrentHashMap<String, ServerInfo>();
 			serverInfos.put(group, nodes);
 		} else {
 			clearServerList(group);
@@ -212,9 +222,14 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		for (String node : zk.getChildren(path)) {
 			Map<String, String> info = getServerInfo(prefix + node);
 			if (info != null) {
-				nodes.put(node, info);
+				// nodes.put(node, info);
+				ServerInfo server = new ServerInfo();
+				server.setGroup(group);
 				String address = info.get("address");
-				serverAddrs.put(address, new String[] { group, node });
+				server.setServiceAddress(InetSocketAddressHelper.parse(address));
+				nodes.put(node, server);
+				serverAddrs.put(InetSocketAddressHelper.toString(server
+						.getServiceAddress()), server);
 				logger.debug("register server: {}/{} - {}", group, node,
 						address);
 			}
@@ -234,20 +249,20 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 			if (currentChilds == null) {
 				serverInfos.clear();
 			} else {
-				HashSet<String> toBeDeleted = new HashSet<String>(
+				HashSet<Integer> toBeDeleted = new HashSet<Integer>(
 						serverInfos.keySet());
-				HashSet<String> toBeAdd = new HashSet<String>();
+				HashSet<Integer> toBeAdd = new HashSet<Integer>();
 				for (String child : currentChilds) {
 					if (!toBeDeleted.remove(child)) {
-						toBeAdd.add(child);
+						toBeAdd.add(Integer.parseInt(child));
 					}
 				}
-				for (String name : toBeDeleted) {
-					clearServerList(name);
-					serverInfos.remove(name);
+				for (int group : toBeDeleted) {
+					clearServerList(group);
+					serverInfos.remove(group);
 				}
-				for (String name : toBeAdd) {
-					reloadServerList(name);
+				for (int group : toBeAdd) {
+					reloadServerList(group);
 				}
 			}
 		}
@@ -261,16 +276,16 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		public void handleChildChange(String parentPath,
 				List<String> currentChilds) throws Exception {
 			int slash = parentPath.lastIndexOf('/');
-			String group = parentPath.substring(slash + 1);
+			int group = Integer.parseInt(parentPath.substring(slash + 1));
 			if (currentChilds == null) {
 				clearServerList(group);
 				serverInfos.remove(group);
 			} else {
-				ConcurrentMap<String, Map<String, String>> nodes = serverInfos
+				ConcurrentMap<String, ServerInfo> nodes = serverInfos
 						.get(group);
 				if (nodes == null) {
-					nodes = new ConcurrentHashMap<String, Map<String, String>>();
-					ConcurrentMap<String, Map<String, String>> old = serverInfos
+					nodes = new ConcurrentHashMap<String, ServerInfo>();
+					ConcurrentMap<String, ServerInfo> old = serverInfos
 							.putIfAbsent(group, nodes);
 					if (old != null) {
 						nodes = old;
@@ -285,12 +300,12 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 					}
 				}
 				for (String name : toBeDeleted) {
-					Map<String, String> info = nodes.remove(name);
+					ServerInfo info = nodes.remove(name);
 					if (info != null) {
-						String address = info.get("address");
-						String[] nodeInfos = serverAddrs.get(address);
-						if (nodeInfos != null && group.equals(nodeInfos[0])
-								&& name.equals(nodeInfos[1])) {
+						String address = InetSocketAddressHelper.toString(info
+								.getServiceAddress());
+						ServerInfo info2 = serverAddrs.get(address);
+						if (info.equals(info2)) {
 							serverAddrs.remove(address);
 							logger.debug("unregister server: {}/{} - {}",
 									group, name, address);
@@ -301,9 +316,15 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 					String path = parentPath + '/' + name;
 					Map<String, String> info = getServerInfo(path);
 					if (info != null) {
-						nodes.put(name, info);
+						// nodes.put(name, info);
+						ServerInfo server = new ServerInfo();
+						server.setGroup(group);
 						String address = info.get("address");
-						serverAddrs.put(address, new String[] { group, name });
+						server.setServiceAddress(InetSocketAddressHelper
+								.parse(address));
+						nodes.put(name, server);
+						serverAddrs.put(InetSocketAddressHelper.toString(server
+								.getServiceAddress()), server);
 						logger.debug("register server: {}/{} - {}", group,
 								name, address);
 					}

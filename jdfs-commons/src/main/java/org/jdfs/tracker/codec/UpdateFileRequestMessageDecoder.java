@@ -33,11 +33,13 @@ public class UpdateFileRequestMessageDecoder extends JdfsFileRequestMessageDecod
 			IoBuffer in) throws Exception{
 		UpdateFileInfoRequest request = state.getRequest();
 		if(state.getState() == 2) {
-			if(in.remaining() < 16) {
+			if(in.remaining() < 20) {
 				return MessageDecoderResult.NEED_DATA;
 			}
+			int group = in.getInt();
 			long size = in.getLong();
 			long lastModified = in.getLong();
+			request.setGroup(group);
 			request.setSize(size);
 			request.setLastModified(lastModified);
 			state.toNextState();

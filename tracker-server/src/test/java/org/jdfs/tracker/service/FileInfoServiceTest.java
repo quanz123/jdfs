@@ -28,19 +28,16 @@ public class FileInfoServiceTest {
 	public void testLoadSave() throws IOException {
 		System.out.println(fileInfoService.getFileInfo(100));
 		DateTime now = DateTime.now();
-		FileInfo file = new FileInfo();
-		file.setId(100);
-		file.setName("测试文件1");
-		file.setSize(2345);
-		file.setLastModified(now);
-		fileInfoService.updateFileInfo(file);
+		fileInfoService.updateFileName(100, "测试文件1.txt");
+		fileInfoService.updateFileDataInfo(100, 1, 2345, now);
+		
 		
 		FileInfo file2 = fileInfoService.getFileInfo(100);
 		Assert.assertNotNull(file2);
-		Assert.assertEquals(file.getId(), file2.getId());
-		Assert.assertEquals(file.getName(), file2.getName());
-		Assert.assertEquals(file.getSize(), file2.getSize());
-		Assert.assertEquals(file.getLastModified(), file2.getLastModified());
+		Assert.assertEquals(100, file2.getId());
+		Assert.assertEquals("测试文件1.txt", file2.getName());
+		Assert.assertEquals(2345, file2.getSize());
+		Assert.assertEquals(now, file2.getLastModified());
 		
 	}
 }

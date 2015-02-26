@@ -4,7 +4,7 @@ import org.jdfs.commons.service.AbstractJdfsServer;
 
 public class StorageServiceImpl extends AbstractJdfsServer {
 	private String base = "/jdfs";
-	private String group = "group1";
+	private int group = 1;
 
 	/**
 	 * 返回服务器注册信息节点的根路径，缺省为{@code /jdfs}
@@ -29,7 +29,7 @@ public class StorageServiceImpl extends AbstractJdfsServer {
 	 * 
 	 * @return
 	 */
-	public String getGroup() {
+	public int getGroup() {
 		return group;
 	}
 
@@ -38,7 +38,7 @@ public class StorageServiceImpl extends AbstractJdfsServer {
 	 * 
 	 * @param group
 	 */
-	public void setGroup(String group) {
+	public void setGroup(int group) {
 		this.group = group;
 	}
 

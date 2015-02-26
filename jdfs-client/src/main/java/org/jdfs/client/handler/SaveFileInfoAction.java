@@ -13,6 +13,7 @@ import org.jdfs.commons.request.JdfsRequest;
 import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.tracker.request.UpdateFileInfoRequest;
+import org.jdfs.tracker.service.ServerInfo;
 
 /**
  * 保存文件信息的操作实现
@@ -76,9 +77,13 @@ public class SaveFileInfoAction extends AbstractServerAction {
 		if (request instanceof FileInfo) {
 			file = (FileInfo) request;
 		}
+		ServerInfo server = (ServerInfo) context.get("server");
 		UpdateFileInfoRequest req = new UpdateFileInfoRequest();
 		req.setId(file.getId());
 		req.setName(file.getName());
+		if(server != null) {
+			req.setGroup(server.getGroup());			
+		}
 		req.setSize(file.getSize());
 		req.setLastModified(file.getLastModified().getMillis());
 		return IteratorUtils.arrayIterator(new JdfsRequest[] { req });

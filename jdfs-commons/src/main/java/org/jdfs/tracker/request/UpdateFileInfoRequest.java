@@ -10,6 +10,7 @@ import org.jdfs.commons.request.JdfsRequestConstants;
  * @version 2015年2月3日 上午11:02:13
  */
 public class UpdateFileInfoRequest extends JdfsFileRequest {
+	private int group;
 	private long size;
 	private long lastModified;
 	private String name;
@@ -22,6 +23,22 @@ public class UpdateFileInfoRequest extends JdfsFileRequest {
 		setCode(JdfsRequestConstants.REQUEST_INFO_UPDATE);
 	}
 
+	/**
+	 * 返回文件数据所在的存储组
+	 * @return
+	 */
+	public int getGroup() {
+		return group;
+	}
+	
+	/**
+	 * 设置文件数据所在的存储组
+	 * @param group
+	 */
+	public void setGroup(int group) {
+		this.group = group;
+	}
+	
 	/**
 	 * 返回文件的大小
 	 * 

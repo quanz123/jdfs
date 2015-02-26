@@ -2,6 +2,7 @@ package org.jdfs.client.handler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.jdfs.commons.request.JdfsRequest;
 import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.storage.request.UpdateFileRequest;
+import org.jdfs.tracker.service.ServerInfo;
 import org.joda.time.DateTime;
 
 /**
@@ -29,6 +31,8 @@ public class UploadFileDataAction extends AbstractServerAction {
 	private long length;
 	private long offset;
 	private InputStream data;
+	
+	private int group;
 
 	private int chunkSize = 8192;
 
@@ -141,6 +145,22 @@ public class UploadFileDataAction extends AbstractServerAction {
 	}
 
 	/**
+	 * 返回接收数据的服务器组
+	 * @return
+	 */
+	public int getGroup() {
+		return group;
+	}
+	
+	/**
+	 * 设置接收数据的服务器组
+	 * @param group
+	 */
+	public void setGroup(int group) {
+		this.group = group;
+	}
+	
+	/**
 	 * 返回上传数据所允许的数据块大小
 	 * 
 	 * @return
@@ -199,8 +219,15 @@ public class UploadFileDataAction extends AbstractServerAction {
 	@Override
 	protected Iterator<JdfsRequest> getRequestIterator(Object request,
 			Map<String, Object> context, ActionChain chain) {
-		if (request instanceof SocketAddress) {
-			setServerAddress((SocketAddress) request);
+		if (request instanceof ServerInfo) {
+			ServerInfo server = (ServerInfo) request;
+			setGroup(server.getGroup());
+			setServerAddress(server.getServiceAddress());
+			context.put("server", request);
+		} else {
+			ServerInfo server = new ServerInfo();
+			server.setGroup(getGroup());
+			server.setServiceAddress((InetSocketAddress) getServerAddress());
 		}
 		return new MultipartRequestIterator(id, size, data, length);
 	}

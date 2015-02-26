@@ -21,9 +21,9 @@ public class UpdateFileRequestMessageEncoder extends
 			UpdateFileInfoRequest message) {
 		String name = message.getName();
 		if(StringUtils.isEmpty(name)) {
-			return IoBuffer.allocate(36, false);
+			return IoBuffer.allocate(40, false);
 		} else {
-			IoBuffer buf = IoBuffer.allocate(36 + name.length() * 3, false);
+			IoBuffer buf = IoBuffer.allocate(40 + name.length() * 3, false);
 			buf.setAutoExpand(true);
 			return buf;
 		}
@@ -33,6 +33,7 @@ public class UpdateFileRequestMessageEncoder extends
 	protected void encodeFileMessageData(UpdateFileInfoRequest message,
 			IoBuffer buffer, IoSession session, ProtocolEncoderOutput out)
 			throws Exception {
+		buffer.putInt(message.getGroup());
 		buffer.putLong(message.getSize());	
 		buffer.putLong(message.getLastModified());	
 		String name = message.getName();

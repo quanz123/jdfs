@@ -1,7 +1,6 @@
 package org.jdfs.client.handler;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.jdfs.commons.request.JdfsRequest;
 import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.tracker.request.GetUploadServerRequest;
+import org.jdfs.tracker.service.ServerInfo;
 
 /**
  * 获取可用上传服务器地址的操作实现
@@ -88,11 +88,8 @@ public class GetUploadServerAction extends AbstractServerAction {
 			return null;
 		} else {
 			String message = resp.getMessage();
-			int colon = message.indexOf(':');
-			String host = message.substring(0, colon);
-			int port = Integer.parseInt(message.substring(colon + 1));
-			InetSocketAddress addr = new InetSocketAddress(host, port);
-			return addr;
+			ServerInfo server = ServerInfo.parse(message);
+			return server;
 		}
 	}
 }
