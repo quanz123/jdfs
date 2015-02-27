@@ -81,9 +81,9 @@ public class AbstractServerAction implements Action {
 			}
 		}
 
-		Object ret = createResponse(request, context, requestList,
+		Object response = createResponse(request, context, requestList,
 				responseList, chain);
-		return chain.doAction(ret, context);
+		return processInternal(request, response, context, chain);
 	}
 
 	protected IoSession getSession() {
@@ -122,6 +122,11 @@ public class AbstractServerAction implements Action {
 			JdfsRequest response, Iterator<JdfsRequest> requestIterator,
 			ActionChain chain) {
 		return true;
+	}
+	
+	protected Object processInternal(Object request, Object response, Map<String, Object> context,
+			ActionChain chain) {
+		return chain.doAction(response, context);
 	}
 
 	/**

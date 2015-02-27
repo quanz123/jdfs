@@ -168,9 +168,10 @@ public class StorageClientTest {
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
 			if (message instanceof JdfsDataResponse) {
-				String msg = new String(((JdfsDataResponse) message).getData(),
-						"UTF-8");
-				System.out.println("batchId: " + ((JdfsDataResponse) message).getBatchId());
+				byte[] data = ((JdfsDataResponse) message).getData();
+				String msg = data == null ? "" : new String(data, "UTF-8");
+				System.out.println("batchId: "
+						+ ((JdfsDataResponse) message).getBatchId());
 				System.out.println("recv data: "
 						+ StringUtils.abbreviate(msg, 100));
 			} else {

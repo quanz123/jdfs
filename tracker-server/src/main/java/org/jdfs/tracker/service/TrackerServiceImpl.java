@@ -127,10 +127,10 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		int group = 0;
 		FileInfo file = fileInfoService.getFileInfo(id);
 		if (file == null) {
-			String[] groups = serverInfos.keySet().toArray(
-					new String[serverInfos.size()]);
+			Integer[] groups = serverInfos.keySet().toArray(
+					new Integer[serverInfos.size()]);
 			if (groups.length > 0) {
-				group = Integer.parseInt(groups[0]);
+				group = groups[0];
 			}
 		} else {
 			group = file.getGroup();

@@ -53,5 +53,17 @@ public class FileServiceTest {
 		Assert.assertEquals("test文件xx.txt", file2.getName());
 		Assert.assertEquals(data.length, file2.getSize());
 		Assert.assertTrue(file2.getLastModified().isAfter(file.getLastModified()));
+		
+		FileInfo file3 = fileService.getFileInfo(102);
+		Assert.assertNull(file3);
+		file3 = fileService.getFileInfo(101);
+		Assert.assertEquals(101l, file3.getId());
+		Assert.assertEquals("test文件xx.txt", file3.getName());
+		Assert.assertEquals(data.length, file3.getSize());
+		Assert.assertEquals(file2.getLastModified(), file3.getLastModified());
+		
+		fileService.removeFile(101);
+		file3 = fileService.getFileInfo(101);
+		Assert.assertNull(file3);
 	}
 }

@@ -88,7 +88,10 @@ public class FileInfoServiceImpl implements FileInfoService, InitializingBean,
 			DateTime lastModified) {
 		FileInfo file =getOrCreateFileInfo(id);
 		//TODO 如何处理并发修改 
-		file.setGroup(group);xxx group值如何处理
+		//TODO 对group的方法是否应该单独分离
+		if(group != 0) {
+			file.setGroup(group);			
+		}
 		file.setSize(size);
 		file.setLastModified(lastModified);
 		infos.put(id, file);

@@ -15,7 +15,9 @@ import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.jdfs.client.handler.ActionChain;
+import org.jdfs.client.handler.GetFileInfoAction;
 import org.jdfs.client.handler.GetUploadServerAction;
+import org.jdfs.client.handler.RemoveFileInfoAction;
 import org.jdfs.client.handler.SaveFileInfoAction;
 import org.jdfs.client.handler.UploadFileDataAction;
 import org.joda.time.DateTime;
@@ -166,6 +168,16 @@ public class FileServiceImpl implements FileService, InitializingBean,
 	}
 
 	@Override
+	public FileInfo getFileInfo(long id) {
+		Map<String, Object> ctx = new HashMap<String, Object>();
+		ActionChain chain = new ActionChain();
+		GetFileInfoAction getAction = new GetFileInfoAction(id,
+				getTrackerAddress(), getTrackerConnector());
+		chain.addAction(getAction);
+		return (FileInfo) chain.doAction(null, ctx);
+	}
+	
+	@Override
 	public FileInfo updateFile(long id, String name, long size,
 			InputStream data, long offset, long length) throws IOException {
 		Map<String, Object> ctx = new HashMap<String, Object>();
@@ -190,9 +202,26 @@ public class FileServiceImpl implements FileService, InitializingBean,
 			file.setLastModified(DateTime.now());
 			SaveFileInfoAction infoAction = new SaveFileInfoAction(
 					getTrackerAddress(), getTrackerConnector());
+			infoAction.setFile(file);
 			chain.addAction(infoAction);
 		}
 		return (FileInfo) chain.doAction(null, ctx);
+	}
+	
+	@Override
+	public void removeFile(long id) {
+		Map<String, Object> ctx = new HashMap<String, Object>();
+		ActionChain chain = new ActionChain();
+		RemoveFileInfoAction getAction = new RemoveFileInfoAction(id,
+				getTrackerAddress(), getTrackerConnector());
+		chain.addAction(getAction);
+		chain.doAction(null, ctx);
+	}
+	
+	@Override
+	public InputStream getFileData(long id) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	protected InetSocketAddress getTrackerAddress() {
@@ -200,7 +229,7 @@ public class FileServiceImpl implements FileService, InitializingBean,
 			return trackers[0];
 		}
 		InetSocketAddress tracker = trackers[0];
-		currentTracker = currentTracker + 1 % trackers.length;
+		currentTracker = (currentTracker + 1) % trackers.length;
 		return tracker;
 	}
 

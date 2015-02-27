@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.jdfs.commons.request.JdfsRequest;
-
 /**
  * 处理链，用于串联多个处理
  * @author James Quan
@@ -72,6 +70,6 @@ public class ActionChain {
 	 * @param exception
 	 */
 	public void throwException(String message, Exception exception) {
-		
+		throw new RuntimeException(message, exception);
 	}
 }
