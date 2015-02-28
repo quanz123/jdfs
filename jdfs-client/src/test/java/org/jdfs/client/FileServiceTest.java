@@ -1,8 +1,10 @@
 package org.jdfs.client;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Date;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,14 +48,16 @@ public class FileServiceTest {
 		Assert.assertEquals(101l, file.getId());
 		Assert.assertEquals("test文件.txt", file.getName());
 		Assert.assertEquals(data.length, file.getSize());
-		Thread.sleep(100);		
-		FileInfo file2 = fileService.updateFile(101, "test文件xx.txt", data.length, null, 0, 0);
+		Thread.sleep(100);
+		FileInfo file2 = fileService.updateFile(101, "test文件xx.txt",
+				data.length, null, 0, 0);
 		Assert.assertNotNull(file2);
 		Assert.assertEquals(101l, file2.getId());
 		Assert.assertEquals("test文件xx.txt", file2.getName());
 		Assert.assertEquals(data.length, file2.getSize());
-		Assert.assertTrue(file2.getLastModified().isAfter(file.getLastModified()));
-		
+		Assert.assertTrue(file2.getLastModified().isAfter(
+				file.getLastModified()));
+
 		FileInfo file3 = fileService.getFileInfo(102);
 		Assert.assertNull(file3);
 		file3 = fileService.getFileInfo(101);
@@ -61,9 +65,16 @@ public class FileServiceTest {
 		Assert.assertEquals("test文件xx.txt", file3.getName());
 		Assert.assertEquals(data.length, file3.getSize());
 		Assert.assertEquals(file2.getLastModified(), file3.getLastModified());
-		
+
+		InputStream in = fileService.getFileData(101);
+		Assert.assertNotNull(in);
+		String str = IOUtils.toString(in, "UTF-8");
+		Assert.assertEquals(b.toString(), str);
+
 		fileService.removeFile(101);
 		file3 = fileService.getFileInfo(101);
 		Assert.assertNull(file3);
+		in = fileService.getFileData(101);
+		Assert.assertNull(in);
 	}
 }

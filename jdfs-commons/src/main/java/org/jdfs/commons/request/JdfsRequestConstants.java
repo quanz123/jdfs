@@ -81,12 +81,17 @@ public interface JdfsRequestConstants {
 	public int STATUS_OK = 0;
 	
 	/**
+	 * 读取的数据已到达末尾
+	 */
+	public int STATUS_EOF = 1;
+	
+	/**
 	 * 待处理的文件不存在
 	 */
-	public int STATUS_FILE_NOT_FOUND = 1;
+	public int STATUS_FILE_NOT_FOUND = 101;
 	
 	/**
 	 * 没有可用的存储服务器
 	 */
-	public int STATUS_STORAGE_NOT_FOUND = 101;
+	public int STATUS_STORAGE_NOT_FOUND = 201;
 }

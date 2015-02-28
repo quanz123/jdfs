@@ -228,6 +228,7 @@ public class UploadFileDataAction extends AbstractServerAction {
 			ServerInfo server = new ServerInfo();
 			server.setGroup(getGroup());
 			server.setServiceAddress((InetSocketAddress) getServerAddress());
+			context.put("server", server);
 		}
 		return new MultipartRequestIterator(id, size, data, length);
 	}
@@ -293,7 +294,6 @@ public class UploadFileDataAction extends AbstractServerAction {
 				throw new RuntimeException("read data error!", e);
 			}
 			req.setData(buf);
-			System.out.println("writing " + len + " at " + position + "....");
 			position += len;
 			return req;
 		}

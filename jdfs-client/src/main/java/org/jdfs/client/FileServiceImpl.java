@@ -15,6 +15,8 @@ import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.jdfs.client.handler.ActionChain;
+import org.jdfs.client.handler.DownloadFileDataAction;
+import org.jdfs.client.handler.GetDownloadServerAction;
 import org.jdfs.client.handler.GetFileInfoAction;
 import org.jdfs.client.handler.GetUploadServerAction;
 import org.jdfs.client.handler.RemoveFileInfoAction;
@@ -220,8 +222,23 @@ public class FileServiceImpl implements FileService, InitializingBean,
 	
 	@Override
 	public InputStream getFileData(long id) {
-		// TODO Auto-generated method stub
-		return null;
+		FileInfo file = getFileInfo(id);
+		if(file == null) {
+			return null;
+		}
+		Map<String, Object> ctx = new HashMap<String, Object>();
+		ActionChain chain = new ActionChain();
+		GetDownloadServerAction getAction = new GetDownloadServerAction(id,
+				getTrackerAddress(), getTrackerConnector());
+		chain.addAction(getAction);
+		DownloadFileDataAction downAction = new DownloadFileDataAction();
+		downAction.setConnector(getStorageConnector());
+		downAction.setId(id);
+		downAction.setOffset(0);
+		downAction.setLength(file.getSize());
+		downAction.setChunkSize(chunkSize);
+		chain.addAction(downAction);
+		return (InputStream)chain.doAction(null, ctx);
 	}
 
 	protected InetSocketAddress getTrackerAddress() {
