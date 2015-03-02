@@ -33,3 +33,12 @@ Storage Server功能包括
 数剧:
 
 code int  功能代码
+
+数据同步
+
+启动时向master请求同步
+mastet发送快照
+为slave建立queue
+操作加入queue
+
+tracker

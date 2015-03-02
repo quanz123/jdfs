@@ -11,13 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.I0Itec.zkclient.IZkChildListener;
-import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.jdfs.commons.service.AbstractJdfsServer;
 import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 
@@ -26,37 +23,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class TrackerServiceImpl extends AbstractJdfsServer implements
 		TrackerService, DisposableBean {
-	private String base = "/jdfs";
 
 	private ConcurrentMap<Integer, ConcurrentMap<String, ServerInfo>> serverInfos = new ConcurrentHashMap<Integer, ConcurrentMap<String, ServerInfo>>();
-	private ConcurrentMap<String, ServerInfo> serverAddrs = new ConcurrentHashMap<String, ServerInfo>();
+	// private ConcurrentMap<String, ServerInfo> serverAddrs = new
+	// ConcurrentHashMap<String, ServerInfo>();
 	private Map<Integer, IZkChildListener> nodeListeners = new LinkedHashMap<Integer, IZkChildListener>();
 	private IZkChildListener groupListener = null;
 
 	private FileInfoService fileInfoService;
-	private ObjectMapper objectMapper;
-
-	/**
-	 * 返回服务器注册信息节点的根路径，缺省为{@code /jdfs}
-	 * 
-	 * @return
-	 */
-	public String getBase() {
-		return base;
-	}
-
-	/**
-	 * 设置服务器注册信息节点的根路径，缺省为{@code /jdfs}
-	 * 
-	 * @param base
-	 */
-	public void setBase(String base) {
-		this.base = base;
-	}
 
 	@Override
-	protected String getZkBasePath() {
-		return getBase() + "/trackers";
+	protected String getType() {
+		return "trackers";
 	}
 
 	@Override
@@ -73,18 +51,6 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	}
 
 	@Override
-	public ObjectMapper getObjectMapper() {
-		// TODO Auto-generated method stub
-		return super.getObjectMapper();
-	}
-
-	@Override
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		// TODO Auto-generated method stub
-		super.setObjectMapper(objectMapper);
-	}
-
-	@Override
 	public void destroy() throws Exception {
 		for (int group : serverInfos.keySet()) {
 			clearServerList(group);
@@ -96,9 +62,6 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	@Override
 	protected void initJdfsServer() throws Exception {
 		Assert.notNull(fileInfoService, "fileInfoService is required!");
-		if (objectMapper == null) {
-			objectMapper = new ObjectMapper();
-		}
 		String basePath = getBase() + "/storages";
 		mkdirs(basePath);
 		groupListener = new GroupWatcher();
@@ -145,31 +108,6 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	}
 
 	/**
-	 * 读取服务器节点的数据信息
-	 * 
-	 * @param path
-	 * @return
-	 * @throws IOException
-	 */
-	protected Map<String, String> getServerInfo(String path) throws IOException {
-		byte[] data;
-		try {
-			data = zk.readData(path);
-		} catch (ZkNoNodeException e) {
-			logger.warn("read node \"" + path + "\" error", e);
-			return null;
-		}
-		if (data == null || data.length == 0) {
-			logger.warn("node \"" + path + "\" data is empty!");
-			return null;
-		}
-		@SuppressWarnings("unchecked")
-		Map<String, String> props = getObjectMapper()
-				.readValue(data, Map.class);
-		return props;
-	}
-
-	/**
 	 * 重新读取存储服务器地址列表
 	 * 
 	 * @throws Exception
@@ -193,18 +131,18 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		}
 		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(groupName);
 		if (nodes != null) {
-			for (Map.Entry<String, ServerInfo> entry : nodes.entrySet()) {
-				String node = entry.getKey();
-				ServerInfo info = entry.getValue();
-				String address = InetSocketAddressHelper.toString(info
-						.getServiceAddress());
-				ServerInfo info2 = serverAddrs.get(address);
-				if (info.equals(info2)) {
-					serverAddrs.remove(address);
-					logger.debug("unregister server: {}/{} - {}", groupName,
-							node, address);
-				}
-			}
+			// for (Map.Entry<String, ServerInfo> entry : nodes.entrySet()) {
+			// String node = entry.getKey();
+			// ServerInfo info = entry.getValue();
+			// String address = InetSocketAddressHelper.toString(info
+			// .getServiceAddress());
+			// ServerInfo info2 = serverAddrs.get(address);
+			// if (info.equals(info2)) {
+			// serverAddrs.remove(address);
+			// logger.debug("unregister server: {}/{} - {}", groupName,
+			// node, address);
+			// }
+			// }
 			nodes.clear();
 		}
 	}
@@ -219,20 +157,13 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		}
 		String path = getBase() + "/storages/" + group;
 		String prefix = path + '/';
-		for (String node : zk.getChildren(path)) {
-			Map<String, String> info = getServerInfo(prefix + node);
-			if (info != null) {
-				// nodes.put(node, info);
-				ServerInfo server = new ServerInfo();
-				server.setGroup(group);
-				String address = info.get("address");
-				server.setServiceAddress(InetSocketAddressHelper.parse(address));
-				nodes.put(node, server);
-				serverAddrs.put(InetSocketAddressHelper.toString(server
-						.getServiceAddress()), server);
-				logger.debug("register server: {}/{} - {}", group, node,
-						address);
-			}
+		for (String name : zk.getChildren(path)) {
+			ServerInfo server = readServerInfo(name, group, prefix + name);
+			logger.debug(
+					"register storage server: {}/{} -> {}",
+					group,
+					name,
+					InetSocketAddressHelper.toString(server.getServiceAddress()));
 		}
 		IZkChildListener listener = new NodeWatcher();
 		zk.subscribeChildChanges(path, listener);
@@ -304,30 +235,21 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 					if (info != null) {
 						String address = InetSocketAddressHelper.toString(info
 								.getServiceAddress());
-						ServerInfo info2 = serverAddrs.get(address);
-						if (info.equals(info2)) {
-							serverAddrs.remove(address);
-							logger.debug("unregister server: {}/{} - {}",
-									group, name, address);
-						}
+						// ServerInfo info2 = serverAddrs.get(address);
+						// if (info.equals(info2)) {
+						// serverAddrs.remove(address);
+						logger.debug("unregister storage server: {}/{} - {}",
+								group, name, address);
+						// }
 					}
 				}
+				String prefix = parentPath + '/';
 				for (String name : toBeAdd) {
-					String path = parentPath + '/' + name;
-					Map<String, String> info = getServerInfo(path);
-					if (info != null) {
-						// nodes.put(name, info);
-						ServerInfo server = new ServerInfo();
-						server.setGroup(group);
-						String address = info.get("address");
-						server.setServiceAddress(InetSocketAddressHelper
-								.parse(address));
-						nodes.put(name, server);
-						serverAddrs.put(InetSocketAddressHelper.toString(server
-								.getServiceAddress()), server);
-						logger.debug("register server: {}/{} - {}", group,
-								name, address);
-					}
+					ServerInfo server = readServerInfo(name, group, prefix
+							+ name);
+					logger.debug("register storgage server: {}/{} - {}", group,
+							name, InetSocketAddressHelper.toString(server
+									.getServiceAddress()));
 				}
 			}
 		}

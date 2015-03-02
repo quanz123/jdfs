@@ -1,14 +1,20 @@
 package org.jdfs.commons.service;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.I0Itec.zkclient.exception.ZkNodeExistsException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.jdfs.commons.utils.InetSocketAddressHelper;
+import org.jdfs.tracker.service.ServerInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,10 +33,16 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	protected ZkClient zk;
 	private InetSocketAddress serviceAddress;
 	private ObjectMapper objectMapper;
-	
+	private String base = "/jdfs";
+	private int group = 1;
+	private String name;
+
+	private ServerInfo serverInfo;
+	private ServerInfo[] members = new ServerInfo[0];
 
 	/**
 	 * 返回服务器所使用的zookeeper服务
+	 * 
 	 * @return
 	 */
 	public ZkClient getZk() {
@@ -39,79 +51,153 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 
 	/**
 	 * 设置服务器所使用的zookeeper服务
+	 * 
 	 * @param zk
 	 */
 	public void setZk(ZkClient zk) {
 		this.zk = zk;
 	}
 
-
 	/**
 	 * 返回对外服务的地址
+	 * 
 	 * @return
 	 */
 	public InetSocketAddress getServiceAddress() {
 		return serviceAddress;
 	}
-	
+
 	/**
 	 * 设置对外服务的地址
+	 * 
 	 * @param serviceAddress
 	 */
 	public void setServiceAddress(InetSocketAddress serviceAddress) {
 		this.serviceAddress = serviceAddress;
 	}
-	
+
+	/**
+	 * 返回服务器所在的服务器组
+	 * 
+	 * @return
+	 */
+	public int getGroup() {
+		return group;
+	}
+
+	/**
+	 * 设置服务器所在的服务器组
+	 * 
+	 * @param group
+	 */
+	public void setGroup(int group) {
+		this.group = group;
+	}
+
+	/**
+	 * 返回服务器注册信息节点的根路径，缺省为{@code /jdfs}
+	 * 
+	 * @return
+	 */
+	public String getBase() {
+		return base;
+	}
+
+	/**
+	 * 设置服务器注册信息节点的根路径，缺省为{@code /jdfs}
+	 * 
+	 * @param base
+	 */
+	public void setBase(String base) {
+		this.base = base;
+	}
+
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
-	
+
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(serviceAddress, "serviceAddress is required!");
 		Assert.notNull(zk, "zk is required!");
-		if(objectMapper == null) {
+		if (objectMapper == null) {
 			objectMapper = new ObjectMapper();
 		}
 		registerServer();
 		initJdfsServer();
 	}
-	
+
 	/**
-	 * 将服务器注册到zookeeper
-	 * @throws Exception
-	 */
-	protected void registerServer() throws Exception{
-		String path = getZkBasePath();
-		mkdirs(path);
-		String nodePath = path + '/' + getZkNodeName();
-		byte[] data = getServerData();
-			zk.create(nodePath, data,
-					Ids.READ_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-	}
-	
-	/**
-	 * 返回服务器在zk上注册时的基础节点路径
+	 * 返回Tracker管理服务器自身的信息
+	 * 
 	 * @return
 	 */
-	protected abstract String getZkBasePath();
-	
+	public ServerInfo getServerInfo() {
+		return serverInfo;
+	}
+
+	/**
+	 * 返回同组的其他管理服务器的信息
+	 * 
+	 * @return
+	 */
+	public ServerInfo[] getMembers() {
+		return members;
+	}
+
+	/**
+	 * 将服务器注册到zookeeper
+	 * 
+	 * @throws Exception
+	 */
+	protected void registerServer() throws Exception {
+		String path = getZkBasePath();
+		mkdirs(path);
+		String prefix = path + '/';
+		byte[] data = getServerData();
+		name = zk.create(prefix + getZkNodeName(), data, Ids.READ_ACL_UNSAFE,
+				CreateMode.EPHEMERAL_SEQUENTIAL);
+		name = name.substring(prefix.length());
+		MemberWatcher memberListener = new MemberWatcher();
+		zk.subscribeChildChanges(path, memberListener);
+		reloadMembers();
+	}
+
+	/**
+	 * 返回服务器在zk上注册时的基础节点路径
+	 * 
+	 * @return
+	 */
+	protected String getZkBasePath() {
+		return getBase() + '/' + getType();
+	}
+
+	/**
+	 * 返回服务器的类型
+	 * 
+	 * @return
+	 */
+	protected abstract String getType();
+
 	/**
 	 * 返回服务器在zk上注册时的节点名字
+	 * 
 	 * @return
 	 */
 	protected abstract String getZkNodeName();
 
 	/**
 	 * 在zk服务器上建立永久节点
-	 * @param path 待建立节点的路径
+	 * 
+	 * @param path
+	 *            待建立节点的路径
 	 * @throws Exception
 	 */
-	protected void mkdirs(String path) throws Exception {		
+	protected void mkdirs(String path) throws Exception {
 		if (zk.exists(path)) {
 			return;
 		}
@@ -121,18 +207,20 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 			mkdirs(parent);
 		}
 		try {
-			zk.create(path, new byte[0],
-					Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+			zk.create(path, new byte[0], Ids.OPEN_ACL_UNSAFE,
+					CreateMode.PERSISTENT);
 		} catch (ZkNodeExistsException e) {
 		}
 	}
-	
+
 	/**
-	 * 返回服务器状态节点所包含的数据
+	 * 返回需要存储到服务器状态节点的数据
+	 * 
 	 * @return
 	 * @throws Exception
+	 * @see {@link #getServerInfo()}
 	 */
-	protected byte[] getServerData() throws Exception{
+	protected byte[] getServerData() throws Exception {
 		Map<String, String> props = new LinkedHashMap<String, String>();
 		props.put("address", InetSocketAddressHelper.toString(serviceAddress));
 		prepareServerData(props);
@@ -140,21 +228,136 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 		return data;
 	}
 
-	
+	/**
+	 * 返回服务器状态节点数据对应的 数据信息
+	 * 
+	 * @param path
+	 * @return
+	 * @throws IOException
+	 */
+	protected Map<String, String> getServerInfo(String path) throws IOException {
+		byte[] data;
+		try {
+			data = zk.readData(path);
+		} catch (ZkNoNodeException e) {
+			logger.warn("read node \"" + path + "\" error", e);
+			return null;
+		}
+		if (data == null || data.length == 0) {
+			logger.warn("node \"" + path + "\" data is empty!");
+			return null;
+		}
+		@SuppressWarnings("unchecked")
+		Map<String, String> props = getObjectMapper()
+				.readValue(data, Map.class);
+		return props;
+	}
+
+	/**
+	 * 重新加载服务器及其组成员的信息
+	 * 
+	 * @throws IOException
+	 */
+	protected void reloadMembers() throws IOException {
+		String path = getZkBasePath();
+		String prefix = path + '/';
+		List<ServerInfo> list = new ArrayList<ServerInfo>();
+		for (String child : zk.getChildren(path)) {
+			ServerInfo server = readServerInfo(child, group, prefix + child);
+			if (child.equals(name)) {
+				serverInfo = server;
+			} else {
+				list.add(server);
+			}
+		}
+		members = list.toArray(new ServerInfo[list.size()]);
+		if (logger.isDebugEnabled()) {
+			logger.debug("reload member list:");
+			logger.debug("server: {}/{} -> {}", serverInfo.getGroup(),
+					serverInfo.getName(), InetSocketAddressHelper
+							.toString(serverInfo.getServiceAddress()));
+			logger.debug("members:");
+			for (ServerInfo server : members) {
+				logger.debug("server: {}/{} -> {}", server.getGroup(), server
+						.getName(), InetSocketAddressHelper.toString(server
+						.getServiceAddress()));
+			}
+		}
+	}
+
+	/**
+	 * 返回指定节点所代表的服务器的信息
+	 * 
+	 * @param name
+	 *            服务器的名字
+	 * @param group
+	 *            服务器所隶属的组
+	 * @param path
+	 *            服务器数据节点的路径
+	 * @return
+	 * @throws IOException
+	 */
+	protected ServerInfo readServerInfo(String name, int group, String path)
+			throws IOException {
+		Map<String, String> props = getServerInfo(path);
+		ServerInfo server = new ServerInfo();
+		server.setName(name);
+		server.setGroup(group);
+		String address = props.get("address");
+		server.setServiceAddress(InetSocketAddressHelper.parse(address));
+		return server;
+	}
+
 	/**
 	 * 建立服务器状态节点前执行的回调函数，供子类重写后加入其他节点数据
-	 * @param props 服务器节点所包含的数据
+	 * 
+	 * @param props
+	 *            服务器节点所包含的数据
 	 * @throws Exception
 	 */
-	protected void prepareServerData(Map<String, String> props) throws Exception{		
+	protected void prepareServerData(Map<String, String> props)
+			throws Exception {
 	}
-	
+
 	/**
 	 * 基础系统执行完毕后调用的回调函数，供子类重写后加入扩展逻辑
+	 * 
 	 * @throws Exception
 	 */
-	protected void initJdfsServer() throws Exception {		
+	protected void initJdfsServer() throws Exception {
 	}
-	
-	
+
+	/**
+	 * 组成员变化监听器
+	 */
+	protected class MemberWatcher implements IZkChildListener {
+		@Override
+		public void handleChildChange(String parentPath,
+				List<String> currentChilds) throws Exception {
+			if (currentChilds == null) {
+				members = new ServerInfo[0];
+			} else {
+				List<ServerInfo> list = new ArrayList<ServerInfo>();
+				String prefix = parentPath + '/';
+				for (String child : currentChilds) {
+					if (child.equals(name)) {
+						continue;
+					}
+					ServerInfo server = readServerInfo(child, group, prefix
+							+ child);
+					list.add(server);
+				}
+				members = list.toArray(new ServerInfo[list.size()]);
+				if (logger.isDebugEnabled()) {
+					logger.debug("members change detected, members:");
+					for (ServerInfo server : members) {
+						logger.debug("server: {}/{} -> {}", server.getGroup(),
+								server.getName(), InetSocketAddressHelper
+										.toString(server.getServiceAddress()));
+					}
+				}
+			}
+		}
+	}
+
 }

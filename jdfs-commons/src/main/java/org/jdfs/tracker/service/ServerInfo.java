@@ -12,9 +12,18 @@ import org.jdfs.commons.utils.InetSocketAddressHelper;
  * @version 2015年2月26日 下午3:23:51
  */
 public class ServerInfo implements Serializable {
+	private String name;
 	private int group;
 	private InetSocketAddress serviceAddress;
-
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public int getGroup() {
 		return group;
 	}
