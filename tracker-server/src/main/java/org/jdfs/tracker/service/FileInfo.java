@@ -61,12 +61,18 @@ public class FileInfo implements Serializable {
 	public void setLastModified(DateTime lastModified) {
 		this.lastModified = lastModified;
 	}
-	
+
 	public int getGroup() {
 		return group;
 	}
-	
+
 	public void setGroup(int group) {
 		this.group = group;
+	}
+
+	@Override
+	public String toString() {
+		return new StringBuilder().append(name).append('(').append(id)
+				.append(')').toString();
 	}
 }

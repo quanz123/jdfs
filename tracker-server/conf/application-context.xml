@@ -98,7 +98,13 @@
         </entry>
         <entry key="org.jdfs.tracker.request.UpdateFileInfoRequest">
           <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageEncoder" />
-        </entry>        
+        </entry>       
+        <entry key="org.jdfs.tracker.request.RemoveFileInfoSyncRequest">
+          <bean class="org.jdfs.tracker.codec.RemoveFileSyncRequestMessageEncoder" />
+        </entry>
+        <entry key="org.jdfs.tracker.request.UpdateFileInfoSyncRequest">
+          <bean class="org.jdfs.tracker.codec.UpdateFileSyncRequestMessageEncoder" />
+        </entry>         
       </map>
     </property>
     <property name="decoders">
@@ -118,6 +124,9 @@
         <bean class="org.jdfs.tracker.codec.ReadFileRequestMessageDecoder" />
         <bean class="org.jdfs.tracker.codec.RemoveFileRequestMessageDecoder" />
         <bean class="org.jdfs.tracker.codec.UpdateFileRequestMessageDecoder" />
+                
+        <bean class="org.jdfs.tracker.codec.RemoveFileSyncRequestMessageDecoder" />
+        <bean class="org.jdfs.tracker.codec.UpdateFileSyncRequestMessageDecoder" />
       </array>
     </property>
   </bean>
@@ -149,12 +158,43 @@
           <bean class="org.jdfs.tracker.handler.UpdateFileInfoMessageHandler">
             <property name="fileInfoService" ref="fileInfoService" />
           </bean>
+        </entry>        <entry key="org.jdfs.tracker.request.RemoveFileInfoSyncRequest">
+          <bean class="org.jdfs.tracker.ha.RemoveFileInfoSyncMessageHandler">
+            <property name="fileInfoService" ref="fileInfoService" />
+          </bean>
+        </entry>
+        <entry key="org.jdfs.tracker.request.UpdateFileInfoSyncRequest">
+          <bean class="org.jdfs.tracker.ha.UpdateFileInfoSyncMessageHandler">
+            <property name="fileInfoService" ref="fileInfoService" />
+          </bean>
         </entry>
       </map>
     </property>
   </bean>
 
   <bean id="fileInfoService" class="org.jdfs.tracker.service.FileInfoServiceImpl">
+    <property name="root" value="${org.jdfs.tracker.datadir}"/>
   </bean>
 
+  <bean id="clusterFileInfoListener" class="org.jdfs.tracker.ha.ClusterFileInfoListener">
+    <property name="trackerService" ref="trackerService"/>
+    <property name="trackerConnector" ref="trackerConnector"/>
+    <property name="executor">
+      <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+      </bean>
+    </property>
+  </bean>
+  
+  <bean id="trackerConnector" class="org.jdfs.client.NioSocketConnectorFactoryBean">
+      <property name="filters">
+        <map key-type="java.lang.String" value-type="org.apache.mina.core.filterchain.IoFilter">
+          <entry key="logger" value-ref="loggingFilter"/>
+          <entry key="codec" value-ref="codecFilter"/>          
+        </map>
+      </property>
+      <property name="handler" >
+        <bean class="org.jdfs.client.handler.ServerActionIoHandler"/>      
+      </property>
+  </bean>
+    
 </beans>        

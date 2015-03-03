@@ -22,7 +22,8 @@ import org.springframework.util.StringUtils;
  * @version 2015年3月2日 下午2:35:17
  */
 public class FileInfoServiceImpl implements FileInfoService,
-		ApplicationContextAware, InitializingBean, DisposableBean {
+		FileInfoSyncService, ApplicationContextAware, InitializingBean,
+		DisposableBean {
 	private String root;
 	private File rootDir;
 	private DB infoDb;
@@ -129,6 +130,43 @@ public class FileInfoServiceImpl implements FileInfoService,
 		}
 	}
 
+	@Override
+	public void syncUpdateFileName(long id, String name) throws IOException {
+		FileInfo[] files = getOrCreateFileInfoForUpdate(id);
+		FileInfo file = files[1];
+		// TODO 如何处理并发修改
+		file.setName(name);
+		infos.put(id, file);
+		infoDb.commit();
+		compactDb();
+	}
+	
+	@Override
+	public void syncUpdateFileDataInfo(long id, int group, long size,
+			DateTime lastModified) {
+		FileInfo[] files = getOrCreateFileInfoForUpdate(id);
+		// TODO 如何处理并发修改
+		FileInfo file = files[1];
+		// TODO 对group的方法是否应该单独分离
+		if (group != 0) {
+			file.setGroup(group);
+		}
+		file.setSize(size);
+		file.setLastModified(lastModified);
+		infos.put(id, file);
+		infoDb.commit();
+		compactDb();		
+	}
+	
+	@Override
+	public void syncRemoveFileInfo(long id) throws IOException {
+		FileInfo file = infos.remove(id);
+		if (file != null) {
+			infoDb.commit();
+			compactDb();
+		}
+	}
+	
 	protected FileInfo[] getOrCreateFileInfoForUpdate(long id) {
 		FileInfo oldFile = infos.get(id);
 		FileInfo newFile;

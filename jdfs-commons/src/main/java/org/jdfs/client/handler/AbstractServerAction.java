@@ -30,14 +30,19 @@ public class AbstractServerAction extends AbstractSocketAction {
 					session = getSession();
 				}
 				JdfsRequest req = requestIterator.next();
-				serverResult = null;
-				synchronized (mutex) {
-					session.write(req);
-					try {
-						mutex.wait();
-					} catch (InterruptedException e) {
-					}
-				}
+				//serverResult = null;
+				ActionFuture future = sendRequest(req, session);
+//				synchronized (mutex) {
+//					session.write(req);
+//					
+//					
+//					try {
+//						mutex.wait();
+//					} catch (InterruptedException e) {
+//					}
+//				}
+				future.awaitUninterruptibly();
+				JdfsRequest serverResult = future.getResponse();
 				if (!handleServerResponse(req, serverResult, requestIterator, chain)) {
 					break;
 				}
@@ -72,8 +77,10 @@ public class AbstractServerAction extends AbstractSocketAction {
 	
 	protected Object processInternal(Object request, Object response, Map<String, Object> context,
 			ActionChain chain) {
-		return chain.doAction(response, context);
+		return chain == null ? response : chain.doAction(response, context);
 	}
+	
+	
 
 	/**
 	 * 建立向应用返回的处理结果对象

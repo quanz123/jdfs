@@ -73,6 +73,16 @@ public interface JdfsRequestConstants {
 	 */
 	public int REQUEST_SERVER_INFO = 401;
 	
+
+	/**
+	 * 同步对文件信息的修改请求代码
+	 */
+	public int REQUEST_SYNC_INFO_UPDATE = 501;
+
+	/**
+	 * 同步删除文件信息的请求代码
+	 */
+	public int REQUEST_SYNC_INFO_DELETE = 502;
 	// ------------------------------------处理结果代码
 
 	/**

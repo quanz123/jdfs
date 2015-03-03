@@ -67,6 +67,7 @@ public class TrackerClientTest {
 
 	}
 
+	@Test
 	public void testUpdate() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -92,6 +93,7 @@ public class TrackerClientTest {
 		connector.dispose();
 	}
 
+	@Test
 	public void testRead() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -148,7 +150,6 @@ public class TrackerClientTest {
 		Thread.sleep(2000);
 	}
 
-	@Test
 	public void testGetUploadServer() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
@@ -167,7 +168,6 @@ public class TrackerClientTest {
 		Thread.sleep(2000);
 	}
 
-	@Test
 	public void testMultiServer() throws Exception {
 		NioSocketConnector connector = new NioSocketConnector();
 		connector.getFilterChain().addLast("logger", new LoggingFilter());

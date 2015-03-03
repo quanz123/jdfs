@@ -6,4 +6,9 @@ public class RemoveFileInfoEvent extends FileInfoEvent {
 		super(file);
 	}
 
+	@Override
+	public String toString() {
+		return new StringBuilder("remove event: ").append(getFileInfo())
+				.toString();
+	}
 }

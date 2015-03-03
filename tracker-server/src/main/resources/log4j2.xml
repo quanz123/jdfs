@@ -11,7 +11,7 @@
     </RandomAccessFile>
   </Appenders>
   <Loggers>
-    <AsyncLogger name="org.jdfs.tracker.service" level="debug" additivity="false">
+    <AsyncLogger name="org.jdfs.tracker" level="debug" additivity="false">
       <AppenderRef ref="Console" />
       <AppenderRef ref="File" />
     </AsyncLogger>

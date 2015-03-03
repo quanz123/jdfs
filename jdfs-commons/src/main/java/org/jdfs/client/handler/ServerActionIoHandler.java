@@ -2,6 +2,7 @@ package org.jdfs.client.handler;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.Map;
 
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
@@ -87,9 +88,13 @@ public class ServerActionIoHandler extends IoHandlerAdapter{
 //    	if(chain != null) {
 //    		chain.doCommand(session, buf, chain.getData());
 //    	}
-    	ServerActionCallback cb = (ServerActionCallback) session.getAttribute("callback");
-    	if(cb != null) {
-    		cb.handleResponse(request, session);
+    	//ServerActionCallback cb = (ServerActionCallback) session.getAttribute("callback");
+    	Map<Integer, ActionFuture> holder = (Map<Integer, ActionFuture>)session.getAttribute("callbackHolder");
+    	if(holder != null) {
+    		ActionFuture future = holder.remove(batchId);
+    		if(future != null) {
+    			future.setResponse(request);
+    		}
     	}
     }
 
