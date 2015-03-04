@@ -6,7 +6,7 @@ import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.tracker.request.UpdateFileInfoSyncRequest;
 import org.jdfs.tracker.service.FileInfo;
-import org.jdfs.tracker.service.FileInfoService;
+import org.jdfs.tracker.service.FileInfoSyncService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +22,13 @@ import org.springframework.util.Assert;
 public class UpdateFileInfoSyncMessageHandler implements
 		MessageHandler<UpdateFileInfoSyncRequest>, InitializingBean {
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	private FileInfoService fileInfoService;
+	private FileInfoSyncService fileInfoService;
 
-	public FileInfoService getFileInfoService() {
+	public FileInfoSyncService getFileInfoService() {
 		return fileInfoService;
 	}
 
-	public void setFileInfoService(FileInfoService fileInfoService) {
+	public void setFileInfoService(FileInfoSyncService fileInfoService) {
 		this.fileInfoService = fileInfoService;
 	}
 
@@ -50,8 +50,8 @@ public class UpdateFileInfoSyncMessageHandler implements
 		file.setName(message.getName());
 		file.setSize(message.getSize());
 		file.setLastModified(new DateTime(message.getLastModified()));
-		fileInfoService.updateFileName(id, name);
-		fileInfoService.updateFileDataInfo(id, group, size, lastModified);
+		fileInfoService.syncUpdateFileName(id, name);
+		fileInfoService.syncUpdateFileDataInfo(id, group, size, lastModified);
 		JdfsStatusResponse resp = new JdfsStatusResponse();
 		resp.setBatchId(message.getBatchId());
 		resp.setStatus(JdfsRequestConstants.STATUS_OK);

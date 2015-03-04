@@ -5,7 +5,7 @@ import org.apache.mina.handler.demux.MessageHandler;
 import org.jdfs.commons.request.JdfsRequestConstants;
 import org.jdfs.commons.request.JdfsStatusResponse;
 import org.jdfs.tracker.request.RemoveFileInfoSyncRequest;
-import org.jdfs.tracker.service.FileInfoService;
+import org.jdfs.tracker.service.FileInfoSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,13 +20,13 @@ import org.springframework.util.Assert;
 public class RemoveFileInfoSyncMessageHandler implements
 		MessageHandler<RemoveFileInfoSyncRequest>, InitializingBean {
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	private FileInfoService fileInfoService;
+	private FileInfoSyncService fileInfoService;
 
-	public FileInfoService getFileInfoService() {
+	public FileInfoSyncService getFileInfoService() {
 		return fileInfoService;
 	}
 
-	public void setFileInfoService(FileInfoService fileInfoService) {
+	public void setFileInfoService(FileInfoSyncService fileInfoService) {
 		this.fileInfoService = fileInfoService;
 	}
 
@@ -39,7 +39,7 @@ public class RemoveFileInfoSyncMessageHandler implements
 	public void handleMessage(IoSession session, RemoveFileInfoSyncRequest message)
 			throws Exception {
 		long id = message.getId();
-		fileInfoService.removeFileInfo(id);
+		fileInfoService.syncRemoveFileInfo(id);
 		JdfsStatusResponse resp = new JdfsStatusResponse();
 		resp.setBatchId(message.getBatchId());
 		resp.setStatus(JdfsRequestConstants.STATUS_OK);

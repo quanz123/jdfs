@@ -184,13 +184,27 @@ public class DownloadFileDataAction extends AbstractSocketAction {
 
 	protected void requestData(JdfsRequest request) {
 		IoSession session = getSession();
-		serverResult = null;
+		//serverResult = null;
 		synchronized (mutex) {
-			session.write(request);
-			try {
-				mutex.wait();
-			} catch (InterruptedException e) {
-			}
+
+			ActionFuture future = sendRequest(request, session);
+//			synchronized (mutex) {
+//				session.write(req);
+//				
+//				
+//				try {
+//					mutex.wait();
+//				} catch (InterruptedException e) {
+//				}
+//			}
+			future.awaitUninterruptibly();
+			JdfsRequest serverResult = future.getResponse();
+			
+//			session.write(request);
+//			try {
+//				mutex.wait();
+//			} catch (InterruptedException e) {
+//			}
 			JdfsDataResponse resp = (JdfsDataResponse) serverResult;
 			if (resp.getStatus() == JdfsRequestConstants.STATUS_OK) {
 				byte[] data = resp.getData();				

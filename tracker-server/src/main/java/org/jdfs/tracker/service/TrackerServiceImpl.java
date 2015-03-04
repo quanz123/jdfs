@@ -11,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.I0Itec.zkclient.IZkChildListener;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.utils.EnsurePath;
+import org.apache.zookeeper.WatchedEvent;
 import org.jdfs.commons.service.AbstractJdfsServer;
 import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.springframework.beans.factory.DisposableBean;
@@ -27,8 +30,9 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 	private ConcurrentMap<Integer, ConcurrentMap<String, ServerInfo>> serverInfos = new ConcurrentHashMap<Integer, ConcurrentMap<String, ServerInfo>>();
 	// private ConcurrentMap<String, ServerInfo> serverAddrs = new
 	// ConcurrentHashMap<String, ServerInfo>();
-	private Map<Integer, IZkChildListener> nodeListeners = new LinkedHashMap<Integer, IZkChildListener>();
-	private IZkChildListener groupListener = null;
+	// private Map<Integer, IZkChildListener> nodeListeners = new
+	// LinkedHashMap<Integer, IZkChildListener>();
+	// private IZkChildListener groupListener = null;
 
 	private FileInfoService fileInfoService;
 
@@ -56,17 +60,35 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 			clearServerList(group);
 		}
 		String basePath = getBase() + "/storages";
-		zk.unsubscribeChildChanges(basePath, groupListener);
+		// zk.unsubscribeChildChanges(basePath, groupListener);
 	}
 
 	@Override
 	protected void initJdfsServer() throws Exception {
 		Assert.notNull(fileInfoService, "fileInfoService is required!");
 		String basePath = getBase() + "/storages";
-		mkdirs(basePath);
-		groupListener = new GroupWatcher();
-		zk.subscribeChildChanges(basePath, groupListener);
-		reloadAllServerList();
+		EnsurePath ensurePath = new EnsurePath(basePath);
+		ensurePath.ensure(curator.getZookeeperClient());
+		List<String> children = curator.getChildren().usingWatcher(new CuratorWatcher() {
+			@Override
+			public void process(WatchedEvent event) throws Exception {
+				String path = event.getPath();
+				switch (event.getType()) {
+				case NodeChildrenChanged:
+					List<String> children = curator.getChildren().usingWatcher(this).forPath(path);
+					reloadGroupList(children);
+					break;
+				default:
+					curator.getChildren().usingWatcher(this).forPath(path);
+					break;
+				}
+			}
+		}).forPath(basePath);
+		reloadGroupList(children);
+		// mkdirs(basePath);
+		// groupListener = new GroupWatcher();
+		// zk.subscribeChildChanges(basePath, groupListener);
+		// reloadAllServerList();
 	}
 
 	@Override
@@ -107,6 +129,28 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		return names.length > 0 ? nodes.get(names[0]) : null;
 	}
 
+	protected void reloadGroupList(List<String> list){
+		if (list == null || list.isEmpty()) {
+			serverInfos.clear();
+		} else {
+			HashSet<Integer> toBeDeleted = new HashSet<Integer>(
+					serverInfos.keySet());
+			HashSet<Integer> toBeAdd = new HashSet<Integer>();
+			for (String item : list) {
+				int group = Integer.parseInt(item);
+				if (!toBeDeleted.remove(group)) {
+					toBeAdd.add(group);
+				}
+			}
+			for (int group : toBeDeleted) {
+				clearServerList(group);
+				serverInfos.remove(group);
+			}
+			for (int group : toBeAdd) {
+				reloadServerList(group);
+			}
+		}
+	}
 	/**
 	 * 重新读取存储服务器地址列表
 	 * 
@@ -117,18 +161,18 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 			clearServerList(group);
 		}
 		String basePath = getBase() + "/storages";
-		for (String group : zk.getChildren(basePath)) {
-			reloadServerList(Integer.parseInt(group));
-		}
+		// for (String group : zk.getChildren(basePath)) {
+		// reloadServerList(Integer.parseInt(group));
+		// }
 	}
 
 	protected void clearServerList(int group) {
 		String groupName = Integer.toString(group);
-		IZkChildListener listener = nodeListeners.get(groupName);
-		if (listener != null) {
-			String path = getBase() + "/storages/" + groupName;
-			zk.unsubscribeChildChanges(path, listener);
-		}
+//		IZkChildListener listener = nodeListeners.get(groupName);
+//		if (listener != null) {
+//			String path = getBase() + "/storages/" + groupName;
+//			// zk.unsubscribeChildChanges(path, listener);
+//		}
 		ConcurrentMap<String, ServerInfo> nodes = serverInfos.get(groupName);
 		if (nodes != null) {
 			// for (Map.Entry<String, ServerInfo> entry : nodes.entrySet()) {
@@ -157,17 +201,17 @@ public class TrackerServiceImpl extends AbstractJdfsServer implements
 		}
 		String path = getBase() + "/storages/" + group;
 		String prefix = path + '/';
-		for (String name : zk.getChildren(path)) {
-			ServerInfo server = readServerInfo(name, group, prefix + name);
-			logger.debug(
-					"register storage server: {}/{} -> {}",
-					group,
-					name,
-					InetSocketAddressHelper.toString(server.getServiceAddress()));
-		}
-		IZkChildListener listener = new NodeWatcher();
-		zk.subscribeChildChanges(path, listener);
-		nodeListeners.put(group, listener);
+		// for (String name : zk.getChildren(path)) {
+		// ServerInfo server = readServerInfo(name, group, prefix + name);
+		// logger.debug(
+		// "register storage server: {}/{} -> {}",
+		// group,
+		// name,
+		// InetSocketAddressHelper.toString(server.getServiceAddress()));
+		// }
+		// IZkChildListener listener = new NodeWatcher();
+		// zk.subscribeChildChanges(path, listener);
+		// nodeListeners.put(group, listener);
 	}
 
 	/**

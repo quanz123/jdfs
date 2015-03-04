@@ -9,13 +9,16 @@
 
   <bean id="trackerService" class="org.jdfs.tracker.service.TrackerServiceImpl">
     <property name="serviceAddress" value="${org.jdfs.tracker.service}" />
-    <property name="zk" ref="zkServer" />
+    <property name="curator" ref="curator" />
     <property name="fileInfoService" ref="fileInfoService" />
   </bean>
 
-  <bean id="zkServer" class="org.jdfs.commons.service.ZkClientFactoryBean">
-    <property name="zkServer" value="${org.jdfs.zk}" />
+  <bean id="curator" class="org.jdfs.commons.service.CuratorFrameworkFactoryBean">
+    <property name="connectString" value="${org.jdfs.zk}"/>
   </bean>
+<!--   <bean id="zkServer" class="org.jdfs.commons.service.ZkClientFactoryBean"> -->
+<!--     <property name="zkServer" value="${org.jdfs.zk}" /> -->
+<!--   </bean> -->
 
   <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
     <property name="customEditors">

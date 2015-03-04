@@ -1,18 +1,20 @@
 package org.jdfs.commons.service;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.I0Itec.zkclient.IZkChildListener;
-import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkNoNodeException;
-import org.I0Itec.zkclient.exception.ZkNodeExistsException;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.utils.EnsurePath;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.jdfs.tracker.service.ServerInfo;
 import org.slf4j.Logger;
@@ -30,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AbstractJdfsServer implements InitializingBean {
 	protected Logger logger = LoggerFactory.getLogger(getClass());
-	protected ZkClient zk;
+	protected CuratorFramework curator;
 	private InetSocketAddress serviceAddress;
 	private ObjectMapper objectMapper;
 	private String base = "/jdfs";
@@ -45,17 +47,17 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 * 
 	 * @return
 	 */
-	public ZkClient getZk() {
-		return zk;
+	public CuratorFramework getCurator() {
+		return curator;
 	}
 
 	/**
 	 * 设置服务器所使用的zookeeper服务
 	 * 
-	 * @param zk
+	 * @param curator
 	 */
-	public void setZk(ZkClient zk) {
-		this.zk = zk;
+	public void setCurator(CuratorFramework curator) {
+		this.curator = curator;
 	}
 
 	/**
@@ -123,7 +125,7 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(serviceAddress, "serviceAddress is required!");
-		Assert.notNull(zk, "zk is required!");
+		Assert.notNull(curator, "curator is required!");
 		if (objectMapper == null) {
 			objectMapper = new ObjectMapper();
 		}
@@ -155,16 +157,34 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 * @throws Exception
 	 */
 	protected void registerServer() throws Exception {
-		String path = getZkBasePath();
-		mkdirs(path);
-		String prefix = path + '/';
+		String base = getZkBasePath();
+		String path = base + '/' + getZkNodeName();
 		byte[] data = getServerData();
-		name = zk.create(prefix + getZkNodeName(), data, Ids.READ_ACL_UNSAFE,
-				CreateMode.EPHEMERAL_SEQUENTIAL);
-		name = name.substring(prefix.length());
-		MemberWatcher memberListener = new MemberWatcher();
-		zk.subscribeChildChanges(path, memberListener);
-		reloadMembers();
+		EnsurePath ensurePath = new EnsurePath(base);
+		ensurePath.ensure(curator.getZookeeperClient());
+		name = curator.create().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+				.forPath(path, data);
+		name = name.substring(base.length() + 1);
+		List<String> children = curator.getChildren()
+				.usingWatcher(new CuratorWatcher() {
+					@Override
+					public void process(WatchedEvent event) throws Exception {
+						Watcher.Event.EventType type = event.getType();
+						String path = event.getPath();
+						switch (type) {
+						case NodeChildrenChanged:
+							List<String> children = curator.getChildren()
+									.usingWatcher(this).forPath(path);
+							reloadMembers(path, children, false);
+							break;
+						default:
+							curator.getChildren().usingWatcher(this)
+									.forPath(path);
+							break;
+						}
+					}
+				}).forPath(base);
+		reloadMembers(base, children, true);
 	}
 
 	/**
@@ -197,21 +217,21 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 *            待建立节点的路径
 	 * @throws Exception
 	 */
-	protected void mkdirs(String path) throws Exception {
-		if (zk.exists(path)) {
-			return;
-		}
-		int slash = path.lastIndexOf('/');
-		if (slash > 0) {
-			String parent = path.substring(0, slash);
-			mkdirs(parent);
-		}
-		try {
-			zk.create(path, new byte[0], Ids.OPEN_ACL_UNSAFE,
-					CreateMode.PERSISTENT);
-		} catch (ZkNodeExistsException e) {
-		}
-	}
+	// protected void mkdirs(String path) throws Exception {
+	// if (zk.exists(path)) {
+	// return;
+	// }
+	// int slash = path.lastIndexOf('/');
+	// if (slash > 0) {
+	// String parent = path.substring(0, slash);
+	// mkdirs(parent);
+	// }
+	// try {
+	// zk.create(path, new byte[0], Ids.OPEN_ACL_UNSAFE,
+	// CreateMode.PERSISTENT);
+	// } catch (ZkNodeExistsException e) {
+	// }
+	// }
 
 	/**
 	 * 返回需要存储到服务器状态节点的数据
@@ -233,12 +253,13 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 * 
 	 * @param path
 	 * @return
-	 * @throws IOException
+	 * @throws Exception
 	 */
-	protected Map<String, String> getServerInfo(String path) throws IOException {
+	protected Map<String, String> getServerInfo(String path) throws Exception {
 		byte[] data;
 		try {
-			data = zk.readData(path);
+			data = curator.getData().forPath(path);
+			// data = zk.readData(path);
 		} catch (ZkNoNodeException e) {
 			logger.warn("read node \"" + path + "\" error", e);
 			return null;
@@ -253,20 +274,22 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 		return props;
 	}
 
-	/**
-	 * 重新加载服务器及其组成员的信息
-	 * 
-	 * @throws IOException
-	 */
-	protected void reloadMembers() throws IOException {
-		String path = getZkBasePath();
+	protected void reloadMembers(String path, List<String> children,
+			boolean reloadAll) throws Exception {
+		if (children == null) {
+			children = Collections.emptyList();
+		}
 		String prefix = path + '/';
 		List<ServerInfo> list = new ArrayList<ServerInfo>();
-		for (String child : zk.getChildren(path)) {
-			ServerInfo server = readServerInfo(child, group, prefix + child);
+		for (String child : children) {
 			if (child.equals(name)) {
-				serverInfo = server;
+				if (reloadAll) {
+					ServerInfo server = readServerInfo(child, group, prefix
+							+ child);
+					serverInfo = server;
+				}
 			} else {
+				ServerInfo server = readServerInfo(child, group, prefix + child);
 				list.add(server);
 			}
 		}
@@ -295,10 +318,10 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 * @param path
 	 *            服务器数据节点的路径
 	 * @return
-	 * @throws IOException
+	 * @throws Exception
 	 */
 	protected ServerInfo readServerInfo(String name, int group, String path)
-			throws IOException {
+			throws Exception {
 		Map<String, String> props = getServerInfo(path);
 		ServerInfo server = new ServerInfo();
 		server.setName(name);

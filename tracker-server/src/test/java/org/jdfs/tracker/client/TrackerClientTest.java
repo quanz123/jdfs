@@ -1,6 +1,5 @@
 package org.jdfs.tracker.client;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.mina.core.future.ConnectFuture;
@@ -67,7 +66,6 @@ public class TrackerClientTest {
 
 	}
 
-	@Test
 	public void testUpdate() throws Exception {
 		// 创建客户端连接器.
 		NioSocketConnector connector = new NioSocketConnector();
