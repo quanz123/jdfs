@@ -1,20 +1,12 @@
 package org.jdfs.commons.service;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.I0Itec.zkclient.IZkChildListener;
-import org.I0Itec.zkclient.exception.ZkNoNodeException;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.curator.utils.EnsurePath;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.jdfs.commons.utils.InetSocketAddressHelper;
 import org.jdfs.tracker.service.ServerInfo;
 import org.slf4j.Logger;
@@ -38,9 +30,6 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	private String base = "/jdfs";
 	private int group = 1;
 	private String name;
-
-	private ServerInfo serverInfo;
-	private ServerInfo[] members = new ServerInfo[0];
 
 	/**
 	 * 返回服务器所使用的zookeeper服务
@@ -76,6 +65,15 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 */
 	public void setServiceAddress(InetSocketAddress serviceAddress) {
 		this.serviceAddress = serviceAddress;
+	}
+
+	/**
+	 * 返回服务器注册后的名字
+	 * 
+	 * @return
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**
@@ -134,57 +132,21 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	}
 
 	/**
-	 * 返回Tracker管理服务器自身的信息
-	 * 
-	 * @return
-	 */
-	public ServerInfo getServerInfo() {
-		return serverInfo;
-	}
-
-	/**
-	 * 返回同组的其他管理服务器的信息
-	 * 
-	 * @return
-	 */
-	public ServerInfo[] getMembers() {
-		return members;
-	}
-
-	/**
 	 * 将服务器注册到zookeeper
 	 * 
 	 * @throws Exception
 	 */
 	protected void registerServer() throws Exception {
-		String base = getZkBasePath();
-		String path = base + '/' + getZkNodeName();
+		String base = getZkBasePath() + '/' + getGroup();
+		String path = new StringBuilder().append(base).append('/')
+				.append(getZkNodeName()).toString();
 		byte[] data = getServerData();
 		EnsurePath ensurePath = new EnsurePath(base);
 		ensurePath.ensure(curator.getZookeeperClient());
 		name = curator.create().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
 				.forPath(path, data);
 		name = name.substring(base.length() + 1);
-		List<String> children = curator.getChildren()
-				.usingWatcher(new CuratorWatcher() {
-					@Override
-					public void process(WatchedEvent event) throws Exception {
-						Watcher.Event.EventType type = event.getType();
-						String path = event.getPath();
-						switch (type) {
-						case NodeChildrenChanged:
-							List<String> children = curator.getChildren()
-									.usingWatcher(this).forPath(path);
-							reloadMembers(path, children, false);
-							break;
-						default:
-							curator.getChildren().usingWatcher(this)
-									.forPath(path);
-							break;
-						}
-					}
-				}).forPath(base);
-		reloadMembers(base, children, true);
+
 	}
 
 	/**
@@ -256,14 +218,7 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	 * @throws Exception
 	 */
 	protected Map<String, String> getServerInfo(String path) throws Exception {
-		byte[] data;
-		try {
-			data = curator.getData().forPath(path);
-			// data = zk.readData(path);
-		} catch (ZkNoNodeException e) {
-			logger.warn("read node \"" + path + "\" error", e);
-			return null;
-		}
+		byte[] data = curator.getData().forPath(path);
 		if (data == null || data.length == 0) {
 			logger.warn("node \"" + path + "\" data is empty!");
 			return null;
@@ -272,40 +227,6 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 		Map<String, String> props = getObjectMapper()
 				.readValue(data, Map.class);
 		return props;
-	}
-
-	protected void reloadMembers(String path, List<String> children,
-			boolean reloadAll) throws Exception {
-		if (children == null) {
-			children = Collections.emptyList();
-		}
-		String prefix = path + '/';
-		List<ServerInfo> list = new ArrayList<ServerInfo>();
-		for (String child : children) {
-			if (child.equals(name)) {
-				if (reloadAll) {
-					ServerInfo server = readServerInfo(child, group, prefix
-							+ child);
-					serverInfo = server;
-				}
-			} else {
-				ServerInfo server = readServerInfo(child, group, prefix + child);
-				list.add(server);
-			}
-		}
-		members = list.toArray(new ServerInfo[list.size()]);
-		if (logger.isDebugEnabled()) {
-			logger.debug("reload member list:");
-			logger.debug("server: {}/{} -> {}", serverInfo.getGroup(),
-					serverInfo.getName(), InetSocketAddressHelper
-							.toString(serverInfo.getServiceAddress()));
-			logger.debug("members:");
-			for (ServerInfo server : members) {
-				logger.debug("server: {}/{} -> {}", server.getGroup(), server
-						.getName(), InetSocketAddressHelper.toString(server
-						.getServiceAddress()));
-			}
-		}
 	}
 
 	/**
@@ -353,34 +274,34 @@ public abstract class AbstractJdfsServer implements InitializingBean {
 	/**
 	 * 组成员变化监听器
 	 */
-	protected class MemberWatcher implements IZkChildListener {
-		@Override
-		public void handleChildChange(String parentPath,
-				List<String> currentChilds) throws Exception {
-			if (currentChilds == null) {
-				members = new ServerInfo[0];
-			} else {
-				List<ServerInfo> list = new ArrayList<ServerInfo>();
-				String prefix = parentPath + '/';
-				for (String child : currentChilds) {
-					if (child.equals(name)) {
-						continue;
-					}
-					ServerInfo server = readServerInfo(child, group, prefix
-							+ child);
-					list.add(server);
-				}
-				members = list.toArray(new ServerInfo[list.size()]);
-				if (logger.isDebugEnabled()) {
-					logger.debug("members change detected, members:");
-					for (ServerInfo server : members) {
-						logger.debug("server: {}/{} -> {}", server.getGroup(),
-								server.getName(), InetSocketAddressHelper
-										.toString(server.getServiceAddress()));
-					}
-				}
-			}
-		}
-	}
+	// protected class MemberWatcher implements IZkChildListener {
+	// @Override
+	// public void handleChildChange(String parentPath,
+	// List<String> currentChilds) throws Exception {
+	// if (currentChilds == null) {
+	// members = new ServerInfo[0];
+	// } else {
+	// List<ServerInfo> list = new ArrayList<ServerInfo>();
+	// String prefix = parentPath + '/';
+	// for (String child : currentChilds) {
+	// if (child.equals(name)) {
+	// continue;
+	// }
+	// ServerInfo server = readServerInfo(child, group, prefix
+	// + child);
+	// list.add(server);
+	// }
+	// members = list.toArray(new ServerInfo[list.size()]);
+	// if (logger.isDebugEnabled()) {
+	// logger.debug("members change detected, members:");
+	// for (ServerInfo server : members) {
+	// logger.debug("server: {}/{} -> {}", server.getGroup(),
+	// server.getName(), InetSocketAddressHelper
+	// .toString(server.getServiceAddress()));
+	// }
+	// }
+	// }
+	// }
+	// }
 
 }

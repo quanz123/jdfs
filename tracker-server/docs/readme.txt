@@ -10,3 +10,4 @@ storage server状态的维护
 删除文件信息
 
 
+fileinfoservice 修改数据时异步同步

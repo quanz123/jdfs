@@ -10,12 +10,15 @@
   <bean id="storageService" class="org.jdfs.storage.service.StorageServiceImpl">
     <property name="serviceAddress" value="${org.jdfs.storage.service}" />
     <property name="group" value="${org.jdfs.group}" />
-    <property name="zk" ref="zkServer" />
+    <property name="curator" ref="curator" />
   </bean>
-
-  <bean id="zkServer" class="org.jdfs.commons.service.ZkClientFactoryBean">
-    <property name="zkServer" value="${org.jdfs.zk}" />
-  </bean>
+  
+  <bean id="curator" class="org.jdfs.commons.service.CuratorFrameworkFactoryBean">
+    <property name="connectString" value="${org.jdfs.zk}"/>
+  </bean>  
+<!--   <bean id="zkServer" class="org.jdfs.commons.service.ZkClientFactoryBean"> -->
+<!--     <property name="zkServer" value="${org.jdfs.zk}" /> -->
+<!--   </bean> -->
 
   <bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
     <property name="customEditors">
